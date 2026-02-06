@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { AlertCircle, Camera, CheckCircle, FileText, HeartPulse, Info, Loader2, ScanLine, ShieldAlert, TestTube2, XCircle, Upload, Trash2, ShieldCheck, CircleOff, Prescription } from 'lucide-react';
+import { AlertCircle, Camera, CheckCircle, FileText, HeartPulse, Info, Loader2, ScanLine, ShieldAlert, TestTube2, XCircle, Upload, Trash2, ShieldCheck, CircleOff, NotebookText } from 'lucide-react';
 import { getPillInformation } from './actions';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import type { IdentifyPillOutput } from '@/ai/flows/identify-pill-flow';
@@ -189,7 +189,7 @@ export default function PillRecognitionClient() {
                 <ShieldCheck className='size-4' /> AI Confidence: {mockResult.confidence}
             </div>
              <div className={`flex items-center gap-1 text-sm border rounded-full px-3 py-1 ${!mockResult.prescriptionRequired ? 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300' : 'bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300'}`}>
-                {mockResult.prescriptionRequired ? <Prescription className='size-4' /> : <CircleOff className='size-4' />}
+                {mockResult.prescriptionRequired ? <NotebookText className='size-4' /> : <CircleOff className='size-4' />}
                 {mockResult.prescriptionRequired ? 'Prescription Required' : 'OTC Drug'}
             </div>
         </div>
@@ -287,15 +287,26 @@ export default function PillRecognitionClient() {
                     <div className="space-y-6">
                         <div>
                             <h2 className="text-2xl font-bold text-primary">{pillInfo.medicineName}</h2>
-                            <p className="text-muted-foreground font-medium">{pillInfo.genericName}</p>
+                            <p className="text-muted-foreground font-medium">{pillInfo.brand ? `Brand: ${pillInfo.brand}` : pillInfo.genericName}</p>
                         </div>
-                        <div className='flex gap-2 flex-wrap'>
+                         <div className='flex gap-2 flex-wrap'>
                             <div className='flex items-center gap-1 text-sm border rounded-full px-3 py-1 bg-secondary text-secondary-foreground'>
                                 <TestTube2 className='size-4' /> {pillInfo.medicineType}
                             </div>
                             <div className='flex items-center gap-1 text-sm border rounded-full px-3 py-1 bg-secondary text-secondary-foreground'>
                                 <HeartPulse className='size-4' /> {pillInfo.drugClass}
                             </div>
+                            {pillInfo.confidence && (
+                                <div className='flex items-center gap-1 text-sm border rounded-full px-3 py-1 bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300'>
+                                    <ShieldCheck className='size-4' /> AI Confidence: {pillInfo.confidence}
+                                </div>
+                            )}
+                             {pillInfo.prescriptionRequired !== undefined && (
+                                <div className={`flex items-center gap-1 text-sm border rounded-full px-3 py-1 ${!pillInfo.prescriptionRequired ? 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300' : 'bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300'}`}>
+                                    {pillInfo.prescriptionRequired ? <NotebookText className='size-4' /> : <CircleOff className='size-4' />}
+                                    {pillInfo.prescriptionRequired ? 'Prescription Required' : 'OTC Drug'}
+                                </div>
+                             )}
                         </div>
                         <Separator/>
                         <InfoSection title="Summary" content={pillInfo.summary} icon={<FileText className="size-5" />} />

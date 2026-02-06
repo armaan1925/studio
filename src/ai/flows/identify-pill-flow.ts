@@ -18,9 +18,12 @@ export type IdentifyPillInput = z.infer<typeof IdentifyPillInputSchema>;
 
 const IdentifyPillOutputSchema = z.object({
   medicineName: z.string().describe('Provide corrected full medicine name'),
+  brand: z.string().describe('The brand name of the medicine, if available.'),
   genericName: z.string().describe('Provide generic drug name'),
   medicineType: z.string().describe('Example: Tablet, Capsule, Syrup, Injection, etc.'),
   drugClass: z.string().describe('Example: Antibiotic, Painkiller, Antacid, Antihistamine, etc.'),
+  prescriptionRequired: z.boolean().describe('Whether a prescription is required for this medicine.'),
+  confidence: z.string().describe("The AI model's confidence in the identification, as a percentage. e.g., '95%'"),
   uses: z.string().describe('Explain what conditions it treats'),
   howItWorks: z.string().describe('Simple explanation'),
   safeUseInstructions: z.string().describe('General safe usage guidance'),
@@ -54,6 +57,9 @@ OUTPUT FORMAT (STRICT):
 MEDICINE NAME:
 Provide corrected full medicine name
 
+BRAND NAME:
+Provide the brand name of the medicine, if available.
+
 GENERIC NAME:
 Provide generic drug name
 
@@ -62,6 +68,12 @@ Example: Tablet, Capsule, Syrup, Injection, etc.
 
 DRUG CLASS:
 Example: Antibiotic, Painkiller, Antacid, Antihistamine, etc.
+
+PRESCRIPTION REQUIRED:
+Return true if a prescription is required, false otherwise.
+
+AI CONFIDENCE:
+Provide your confidence level in this identification as a percentage string (e.g. "95%").
 
 USES:
 Explain what conditions it treats
