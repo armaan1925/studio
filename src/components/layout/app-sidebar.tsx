@@ -17,6 +17,7 @@ import {
   LayoutDashboard,
   Pill,
   User,
+  Bot,
 } from 'lucide-react';
 import { UserNav } from './user-nav';
 
@@ -40,6 +41,11 @@ const menuItems = [
     href: '/research-hub',
     label: 'Research Hub',
     icon: FlaskConical,
+  },
+  {
+    href: '/assistant',
+    label: 'AI Assistant',
+    icon: Bot,
   },
   {
     href: '/profile',
