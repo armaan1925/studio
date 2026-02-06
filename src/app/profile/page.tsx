@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Separator } from "@/components/ui/separator";
 import { placeholderImages } from "@/lib/data";
 import { Award, Book, Edit, Star } from "lucide-react";
+import { MedicalQRCode } from "@/components/profile/MedicalQRCode";
 
 export default function ProfilePage() {
     const user = {
@@ -14,7 +15,12 @@ export default function ProfilePage() {
         institution: 'University of Pharmacy',
         role: 'Student',
         points: 1250,
-        achievements: ['Pharmacovigilance Master', 'Clinical Trials Novice', 'Top 10% Scorer']
+        achievements: ['Pharmacovigilance Master', 'Clinical Trials Novice', 'Top 10% Scorer'],
+        age: 28,
+        bloodGroup: 'O+',
+        allergies: ['Penicillin', 'Peanuts'],
+        medicalConditions: ['Asthma'],
+        phone: '+1-234-567-890'
     };
 
     const avatarImage = placeholderImages.find((img) => img.id === 'user-avatar-1');
@@ -86,6 +92,9 @@ export default function ProfilePage() {
                             </div>
                         </CardContent>
                     </Card>
+                </div>
+                <div className="lg:col-span-3">
+                    <MedicalQRCode user={user} />
                 </div>
             </div>
         </PageShell>
