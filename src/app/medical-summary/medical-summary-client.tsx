@@ -4,10 +4,10 @@ import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { AlertCircle, Camera, CheckCircle, FileText, HeartPulse, Info, Languages, Loader2, Mic, ScanLine, ShieldAlert, TestTube2, XCircle, Upload, Trash2, ShieldCheck, CircleOff, NotebookText, Stethoscope, User, FileClock, Activity } from 'lucide-react';
+import { AlertCircle, Camera, CheckCircle, FileText, HeartPulse, Info, Languages, Loader2, Mic, ScanLine, ShieldAlert, TestTube2, XCircle, Upload, Trash2, ShieldCheck, CircleOff, NotebookText, Stethoscope, User, FileClock, Activity, BellRing } from 'lucide-react';
 import { getPrescriptionSummary, getMedicineInfo } from './actions';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import type { SummarizePrescriptionOutput } from '@/ai/flows/summarize-prescription-flow';
+import type { SummarizePrescriptionOutput, MedicineInfo } from '@/ai/flows/summarize-prescription-flow';
 import type { ScanMedicineOutput } from '@/ai/flows/scan-medicine-flow';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
@@ -17,6 +17,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { mockMedicine, mockPrescription } from '@/lib/data';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useSpeechSynthesis } from '@/hooks/use-speech-synthesis';
+import { addRemindersFromMedicines } from '@/lib/reminders';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 
 const languages = [
     { value: 'English', label: 'English' },
@@ -44,6 +47,8 @@ export default function MedicalSummaryClient() {
     const [prescriptionResult, setPrescriptionResult] = useState<SummarizePrescriptionOutput | null>(null);
     const [medicineResult, setMedicineResult] = useState<ScanMedicineOutput | null>(null);
     const [error, setError] = useState<string | null>(null);
+
+    const [remindersToCreate, setRemindersToCreate] = useState<MedicineInfo[]>([]);
 
     useEffect(() => {
         const getCameraPermission = async () => {
@@ -98,7 +103,10 @@ export default function MedicalSummaryClient() {
         let result;
         if (activeTab === 'prescription') {
             result = await getPrescriptionSummary({ imageDataUri: imagePreview, language: selectedLanguage });
-            if (result.success && result.data) setPrescriptionResult(result.data);
+            if (result.success && result.data) {
+                setPrescriptionResult(result.data);
+                setRemindersToCreate(result.data.medicines);
+            }
         } else {
             result = await getMedicineInfo({ imageDataUri: imagePreview });
             if (result.success && result.data) setMedicineResult(result.data);
@@ -125,12 +133,38 @@ export default function MedicalSummaryClient() {
         setPrescriptionResult(null);
         setMedicineResult(null);
         setError(null);
+        setRemindersToCreate([]);
     };
 
     const handleClearPreview = () => {
         setImagePreview(null);
         clearResults();
         if (fileInputRef.current) fileInputRef.current.value = "";
+    };
+
+    const handleToggleReminder = (medicineName: string) => {
+        setRemindersToCreate(prev =>
+            prev.map(med =>
+                med.name === medicineName ? { ...med, reminderEnabled: !(med as any).reminderEnabled } : med
+            )
+        );
+    };
+
+    const handleCreateReminders = () => {
+        const medicinesForReminder = remindersToCreate.filter(med => (med as any).reminderEnabled !== false);
+        if (medicinesForReminder.length === 0) {
+            toast({
+                title: 'No Reminders Selected',
+                description: 'Please select at least one medicine to create reminders.',
+            });
+            return;
+        }
+        addRemindersFromMedicines(medicinesForReminder);
+        toast({
+            title: 'Reminders Created!',
+            description: `Successfully created ${medicinesForReminder.length} new medicine reminders.`,
+        });
+        setRemindersToCreate([]);
     };
 
     const InfoSection = ({ title, content, icon, className }: { title: string; content: React.ReactNode; icon?: React.ReactNode; className?: string; }) => (
@@ -201,8 +235,7 @@ export default function MedicalSummaryClient() {
                 <InfoSection title="Doctor" content={data.doctorName} icon={<Stethoscope className="size-5" />} />
             </div>
             <InfoSection title="Diagnosis" content={data.diagnosis} icon={<Activity className="size-5" />} />
-            <InfoSection title="Medicines" content={<ul className='list-disc pl-5 space-y-1'>{data.medicines.map((m, i) => <li key={i}>{m}</li>)}</ul>} icon={<TestTube2 className="size-5" />} />
-            <InfoSection title="Dosage Instructions" content={<ul className='list-disc pl-5 space-y-1'>{data.dosageInstructions.map((d, i) => <li key={i}>{d}</li>)}</ul>} icon={<FileClock className="size-5" />} />
+            <InfoSection title="Medicines" content={<ul className='list-disc pl-5 space-y-1'>{data.medicines.map((m, i) => <li key={i}>{`${m.name} - ${m.dosage}, ${m.frequency} for ${m.duration}. ${m.notes}`}</li>)}</ul>} icon={<TestTube2 className="size-5" />} />
             <InfoSection title="Precautions" content={<ul className='list-disc pl-5 space-y-1'>{data.precautions.map((p, i) => <li key={i}>{p}</li>)}</ul>} icon={<ShieldAlert className="size-5" />} />
         </div>
     );
@@ -265,6 +298,47 @@ export default function MedicalSummaryClient() {
             </Card>
         );
     }
+    
+    const renderReminderCreator = () => {
+      if (remindersToCreate.length === 0) return null;
+    
+      return (
+        <div className="lg:col-span-2">
+            <Card>
+                <CardHeader>
+                    <CardTitle className='flex items-center gap-2'><BellRing className='text-primary' /> Create Automatic Reminders</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <p className="text-sm text-muted-foreground">Select the medicines for which you want to create automatic reminders based on the prescription.</p>
+                    <div className="space-y-3">
+                        {remindersToCreate.map((med, index) => (
+                            <div key={index} className="flex items-center justify-between rounded-md border p-3">
+                                <div className='flex-grow'>
+                                    <Label htmlFor={`reminder-${index}`} className="font-medium">{med.name}</Label>
+                                    <p className="text-xs text-muted-foreground">{med.frequency} ({med.timing.join(', ')}) for {med.duration}</p>
+                                </div>
+                                <Switch
+                                    id={`reminder-${index}`}
+                                    defaultChecked={true}
+                                    onCheckedChange={(checked) => {
+                                        setRemindersToCreate(prev => {
+                                            const newMeds = [...prev];
+                                            (newMeds[index] as any).reminderEnabled = checked;
+                                            return newMeds;
+                                        });
+                                    }}
+                                />
+                            </div>
+                        ))}
+                    </div>
+                     <Button onClick={handleCreateReminders} className="w-full">
+                        <BellRing className="mr-2" /> Save {remindersToCreate.filter(m => (m as any).reminderEnabled !== false).length} Reminders
+                    </Button>
+                </CardContent>
+            </Card>
+        </div>
+      );
+    }
 
     return (
         <div className="mt-6">
@@ -295,6 +369,9 @@ export default function MedicalSummaryClient() {
                     <TabsContent value="medicine" className='m-0'>{renderScanner()}</TabsContent>
                     {renderResultCard()}
                 </div>
+                 <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+                    {renderReminderCreator()}
+                 </div>
             </Tabs>
         </div>
     );

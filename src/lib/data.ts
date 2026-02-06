@@ -1,5 +1,6 @@
 import type { ImagePlaceholder } from './placeholder-images';
 import { PlaceHolderImages } from './placeholder-images';
+import type { Reminder } from './reminders';
 
 export const placeholderImages: ImagePlaceholder[] = PlaceHolderImages;
 
@@ -60,10 +61,23 @@ export const mockPrescription = {
   patientName: "Rahul Sharma",
   doctorName: "Dr. Mehta",
   medicines: [
-    "Paracetamol 500 mg - twice daily",
-    "Amoxicillin 250 mg - three times daily"
+    {
+      name: "Paracetamol 500 mg",
+      dosage: "1 tablet",
+      frequency: "twice daily",
+      timing: ["morning", "evening"],
+      duration: "5 days",
+      notes: "after food"
+    },
+    {
+      name: "Amoxicillin 250 mg",
+      dosage: "1 capsule",
+      frequency: "three times daily",
+      timing: ["morning", "afternoon", "night"],
+      duration: "7 days",
+      notes: ""
+    }
   ],
-  dosageInstructions: ["Take after food", "Complete course for 5 days"],
   diagnosis: "Fever and throat infection",
   precautions: [
     "Drink warm fluids",
@@ -90,3 +104,36 @@ export const mockMedicine = {
     prescriptionRequired: false,
     confidence: "98%"
 };
+
+export const mockReminders: Reminder[] = [
+    {
+        id: 'mock-1',
+        medicineName: 'Paracetamol 500mg',
+        dosage: '1 tablet',
+        timings: ['09:00', '21:00'],
+        startDate: new Date().toISOString(),
+        durationDays: 5,
+        notes: 'After food',
+        active: true
+    },
+    {
+        id: 'mock-2',
+        medicineName: 'Vitamin C 1000mg',
+        dosage: '1 tablet',
+        timings: ['10:00'],
+        startDate: new Date().toISOString(),
+        durationDays: 30,
+        notes: '',
+        active: true,
+    },
+    {
+        id: 'mock-3',
+        medicineName: 'Amoxicillin 250mg',
+        dosage: '1 capsule',
+        timings: ['08:00', '14:00', '22:00'],
+        startDate: new Date().toISOString(),
+        durationDays: 7,
+        notes: '',
+        active: false,
+    }
+];

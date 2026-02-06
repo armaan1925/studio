@@ -20,6 +20,7 @@ import {
   Bot,
   Camera,
   NotebookText,
+  BellRing,
 } from 'lucide-react';
 import { UserNav } from './user-nav';
 
@@ -43,6 +44,11 @@ const menuItems = [
     href: '/medical-summary',
     label: 'Medical Summary',
     icon: NotebookText,
+  },
+  {
+    href: '/reminders',
+    label: 'Reminders',
+    icon: BellRing,
   },
   {
     href: '/learn',

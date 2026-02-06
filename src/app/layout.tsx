@@ -7,6 +7,7 @@ import { VoiceAssistantProvider } from '@/context/voice-assistant-context';
 import { VoiceAssistant } from '@/components/voice-assistant';
 import { ThemeProvider } from '@/context/ThemeContext';
 import { ParticleBackground } from '@/components/ParticleBackground';
+import { ReminderEngine } from '@/components/reminders/ReminderEngine';
 
 export const metadata: Metadata = {
   title: 'MediMind AI',
@@ -39,6 +40,7 @@ export default function RootLayout({
             </SidebarProvider>
             <Toaster />
             <VoiceAssistant />
+            <ReminderEngine />
           </VoiceAssistantProvider>
         </ThemeProvider>
       </body>
