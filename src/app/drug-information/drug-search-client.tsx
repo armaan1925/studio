@@ -35,13 +35,9 @@ const FormSchema = z.object({
   warnings: z.string(),
 });
 
-type DrugSearchClientProps = {
-  initialSummaryResult: { success: boolean; data?: SummarizeDrugInfoOutput; error?: string };
-};
-
-export default function DrugSearchClient({ initialSummaryResult }: DrugSearchClientProps) {
+export default function DrugSearchClient() {
   const { toast } = useToast();
-  const [summaryResult, setSummaryResult] = useState<SummarizeDrugInfoOutput | undefined>(initialSummaryResult.data);
+  const [summaryResult, setSummaryResult] = useState<SummarizeDrugInfoOutput | undefined>();
   const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<z.infer<typeof FormSchema>>({

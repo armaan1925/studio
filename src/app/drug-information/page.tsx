@@ -1,12 +1,9 @@
 import { PageShell } from "@/components/page-shell";
 import DrugSearchClient from "./drug-search-client";
-import { getDrugSummary } from "./actions";
-import { defaultDrugInfo } from "@/lib/data";
 
-export default async function DrugInformationPage() {
-    
-  const initialSummaryResult = await getDrugSummary(defaultDrugInfo);
-
+export default function DrugInformationPage() {
+  // The initial summary generation was removed to prevent exceeding API rate limits on page load.
+  // The user can generate a summary by clicking the button.
   return (
     <PageShell title="Drug Information">
         <div className="prose prose-stone dark:prose-invert max-w-none">
@@ -16,7 +13,7 @@ export default async function DrugInformationPage() {
                 The form is pre-filled with an example.
             </p>
         </div>
-        <DrugSearchClient initialSummaryResult={initialSummaryResult}/>
+        <DrugSearchClient />
     </PageShell>
   );
 }
