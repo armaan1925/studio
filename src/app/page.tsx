@@ -1,101 +1,91 @@
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { ArrowRight, BookOpen, FlaskConical, Pill } from 'lucide-react';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import Image from 'next/image';
-import { placeholderImages } from '@/lib/data';
-import { PageShell } from '@/components/page-shell';
+'use client';
+
+import { useVoiceAssistant } from '@/context/voice-assistant-context';
+import { DemoPreview } from '@/components/home/demo-preview';
+import { FeatureCard } from '@/components/home/feature-card';
+import { HomeHero } from '@/components/home/hero';
+import { Bot, Mic, NotebookText, ScanLine } from 'lucide-react';
+import { motion } from 'framer-motion';
+
+const features = [
+  {
+    title: 'Pill Scanner',
+    description: 'Scan any medicine using your camera or by uploading an image.',
+    href: '/pill-recognition',
+    icon: <ScanLine className="size-10" />,
+  },
+  {
+    title: 'Medical Summary',
+    description: 'Understand prescriptions and medical reports with AI-powered summaries.',
+    href: '/medical-summary',
+    icon: <NotebookText className="size-10" />,
+  },
+  {
+    title: 'AI Chat Assistant',
+    description: 'Ask any medical or health-related question to our friendly AI.',
+    href: '/assistant',
+    icon: <Bot className="size-10" />,
+  },
+  {
+    title: 'Voice Assistant',
+    description: 'Talk with our AI assistant for hands-free help and guidance.',
+    icon: <Mic className="size-10" />,
+    onClick: true,
+  },
+];
 
 export default function Home() {
-  const features = [
-    {
-      title: 'Drug Information',
-      description: 'Quickly search and get AI-summarized details about any drug.',
-      href: '/drug-information',
-      icon: <Pill className="size-6 text-primary" />,
-    },
-    {
-      title: 'Learning Hub',
-      description: 'Test your knowledge with AI-generated quizzes on various topics.',
-      href: '/learn',
-      icon: <BookOpen className="size-6 text-primary" />,
-    },
-    {
-      title: 'Research Hub',
-      description: 'Get AI suggestions for mentors and related studies.',
-      href: '/research-hub',
-      icon: <FlaskConical className="size-6 text-primary" />,
-    },
-  ];
+  const { toggleAssistant } = useVoiceAssistant();
 
-  const heroImage = placeholderImages.find((img) => img.id === 'home-hero');
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: {
+      y: 0,
+      opacity: 1,
+      transition: {
+        type: 'spring',
+        stiffness: 100,
+      },
+    },
+  };
 
   return (
-    <PageShell title="Dashboard">
-      <div className="flex flex-col gap-8">
-        <Card className="overflow-hidden">
-          <div className="grid md:grid-cols-2">
-            <div className="p-8 md:p-10">
-              <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-card-foreground">
-                Welcome to MediMind AI
-              </h2>
-              <p className="mt-2 text-muted-foreground">
-                Your AI-powered education and safety platform for pharmacy.
-                Explore our features to enhance your learning and research.
-              </p>
-              <Button asChild className="mt-6">
-                <Link href="/drug-information">
-                  Get Started <ArrowRight className="ml-2 size-4" />
-                </Link>
-              </Button>
-            </div>
-            {heroImage && (
-              <div className="relative h-64 md:h-full">
-                <Image
-                  src={heroImage.imageUrl}
-                  alt={heroImage.description}
-                  fill
-                  className="object-cover"
-                  data-ai-hint={heroImage.imageHint}
-                />
-              </div>
-            )}
-          </div>
-        </Card>
+    <div className="min-h-screen w-full bg-gradient-to-br from-slate-900 via-slate-950 to-black text-white overflow-x-hidden">
+      <div className="absolute inset-0 -z-10 h-full w-full bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:16px_16px]"></div>
+      <main className="container mx-auto px-4 py-8 md:py-12">
+        <HomeHero />
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <motion.div
+          className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4"
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+        >
           {features.map((feature) => (
-            <Card
-              key={feature.title}
-              className="flex flex-col transition-all hover:shadow-md"
-            >
-              <CardHeader className="flex flex-row items-center gap-4">
-                <div className="grid size-12 place-items-center rounded-full bg-primary/10">
-                  {feature.icon}
-                </div>
-                <CardTitle>{feature.title}</CardTitle>
-              </CardHeader>
-              <CardContent className="flex-1">
-                <CardDescription>{feature.description}</CardDescription>
-              </CardContent>
-              <CardContent>
-                <Button asChild variant="outline" size="sm">
-                  <Link href={feature.href}>
-                    Go to {feature.title}{' '}
-                    <ArrowRight className="ml-2 size-4" />
-                  </Link>
-                </Button>
-              </CardContent>
-            </Card>
+            <motion.div key={feature.title} variants={itemVariants}>
+              <FeatureCard
+                title={feature.title}
+                description={feature.description}
+                icon={feature.icon}
+                href={feature.onClick ? undefined : feature.href}
+                onClick={feature.onClick ? toggleAssistant : undefined}
+              />
+            </motion.div>
           ))}
-        </div>
-      </div>
-    </PageShell>
+        </motion.div>
+
+        <DemoPreview />
+      </main>
+    </div>
   );
 }

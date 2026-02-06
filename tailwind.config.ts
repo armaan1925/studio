@@ -88,10 +88,19 @@ export default {
             height: '0',
           },
         },
+        'text-glow': {
+            '0%, 100%': {
+                'text-shadow': '0 0 8px theme(colors.cyan.400 / 0.6), 0 0 20px theme(colors.blue.500 / 0.4)',
+            },
+            '50%': {
+                'text-shadow': '0 0 12px theme(colors.cyan.400 / 0.8), 0 0 30px theme(colors.blue.500 / 0.6)',
+            },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
+        'text-glow': 'text-glow 4s ease-in-out infinite',
       },
     },
   },
