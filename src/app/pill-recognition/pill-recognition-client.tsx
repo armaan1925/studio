@@ -4,21 +4,25 @@ import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { AlertCircle, Camera, CheckCircle, FileText, HeartPulse, Info, Loader2, ScanLine, ShieldAlert, TestTube2, XCircle } from 'lucide-react';
+import { AlertCircle, Camera, CheckCircle, FileText, HeartPulse, Info, Loader2, ScanLine, ShieldAlert, TestTube2, XCircle, Upload, Trash2 } from 'lucide-react';
 import { getPillInformation } from './actions';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import type { IdentifyPillOutput } from '@/ai/flows/identify-pill-flow';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
+import Image from 'next/image';
 
 export default function PillRecognitionClient() {
   const { toast } = useToast();
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [pillInfo, setPillInfo] = useState<IdentifyPillOutput | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   useEffect(() => {
     const getCameraPermission = async () => {
@@ -53,12 +57,8 @@ export default function PillRecognitionClient() {
     };
   }, [toast]);
 
-  const handleCapture = async () => {
+  const handleCapture = () => {
     if (!videoRef.current || !canvasRef.current) return;
-
-    setIsLoading(true);
-    setPillInfo(null);
-    setError(null);
 
     const video = videoRef.current;
     const canvas = canvasRef.current;
@@ -68,8 +68,54 @@ export default function PillRecognitionClient() {
     context?.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
 
     const imageDataUri = canvas.toDataURL('image/jpeg');
+    setImagePreview(imageDataUri);
+    setPillInfo(null);
+    setError(null);
+  };
+  
+  const handleUploadClick = () => {
+    fileInputRef.current?.click();
+  };
 
-    const result = await getPillInformation({ imageDataUri });
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
+    if (!allowedTypes.includes(file.type)) {
+        toast({
+            variant: 'destructive',
+            title: 'Invalid File Type',
+            description: 'Please upload a JPG, PNG, or WEBP image.',
+        });
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+        const base64Image = reader.result as string;
+        setImagePreview(base64Image);
+        setPillInfo(null);
+        setError(null);
+    };
+    reader.onerror = () => {
+        toast({
+            variant: 'destructive',
+            title: 'File Read Error',
+            description: 'Could not read the selected file.',
+        });
+    };
+    reader.readAsDataURL(file);
+  };
+  
+  const handleScan = async () => {
+    if (!imagePreview) return;
+
+    setIsLoading(true);
+    setPillInfo(null);
+    setError(null);
+
+    const result = await getPillInformation({ imageDataUri: imagePreview });
 
     if (result.success && result.data) {
         if (result.data.summary.toLowerCase().includes('cannot identify') || result.data.summary.toLowerCase().includes('error')) {
@@ -88,6 +134,15 @@ export default function PillRecognitionClient() {
     }
     setIsLoading(false);
   };
+
+  const handleClear = () => {
+    setImagePreview(null);
+    setPillInfo(null);
+    setError(null);
+    if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+    }
+  };
   
   const InfoSection = ({ title, content, icon, className }: { title: string; content: string; icon: React.ReactNode; className?: string; }) => (
     content ? <div className={className}>
@@ -102,30 +157,54 @@ export default function PillRecognitionClient() {
     <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
         <Card>
             <CardHeader>
-                <CardTitle className="flex items-center gap-2"><Camera className="text-primary"/> Camera</CardTitle>
+                <CardTitle className="flex items-center gap-2"><Camera className="text-primary"/> Pill Scanner</CardTitle>
             </CardHeader>
             <CardContent>
                 <div className="aspect-video bg-muted rounded-md overflow-hidden relative flex items-center justify-center">
-                    <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
-                    <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
-                        <ScanLine className="size-24 text-white/50 animate-pulse" />
-                    </div>
-                    {hasCameraPermission === false && (
-                        <div className='absolute inset-0 bg-background/80 flex flex-col items-center justify-center text-center p-4'>
-                            <Alert variant="destructive">
-                                <AlertTitle>Camera Access Required</AlertTitle>
-                                <AlertDescription>
-                                    Please allow camera access to use this feature. You may need to change permissions in your browser settings.
-                                </AlertDescription>
-                            </Alert>
-                        </div>
+                    {imagePreview ? (
+                        <Image src={imagePreview} alt="Pill preview" layout="fill" objectFit="contain" />
+                    ) : (
+                        <>
+                            <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
+                            <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+                                <ScanLine className="size-24 text-white/50 animate-pulse" />
+                            </div>
+                            {hasCameraPermission === false && (
+                                <div className='absolute inset-0 bg-background/80 flex flex-col items-center justify-center text-center p-4'>
+                                    <Alert variant="destructive">
+                                        <AlertTitle>Camera Access Required</AlertTitle>
+                                        <AlertDescription>
+                                            Please allow camera access to use this feature. You may need to change permissions in your browser settings.
+                                        </AlertDescription>
+                                    </Alert>
+                                </div>
+                            )}
+                        </>
                     )}
                 </div>
                 <canvas ref={canvasRef} className="hidden" />
-                <Button onClick={handleCapture} disabled={isLoading || hasCameraPermission !== true} className="w-full mt-4">
-                    {isLoading ? <Loader2 className="mr-2 animate-spin" /> : <Camera className="mr-2" />}
-                    {isLoading ? 'Analyzing...' : 'Identify Pill'}
-                </Button>
+                <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/jpeg,image/png,image/webp,image/jpg" className="hidden" />
+
+                {imagePreview ? (
+                    <div className='mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2'>
+                        <Button onClick={handleClear} variant="outline" disabled={isLoading}>
+                           <Trash2 className="mr-2" /> Clear
+                        </Button>
+                        <Button onClick={handleScan} disabled={isLoading}>
+                            {isLoading ? <Loader2 className="mr-2 animate-spin" /> : <ScanLine className="mr-2" />}
+                            {isLoading ? 'Analyzing...' : 'Analyze Image'}
+                        </Button>
+                    </div>
+                ) : (
+                    <div className="w-full mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <Button onClick={handleCapture} disabled={isLoading || hasCameraPermission !== true}>
+                            <Camera className="mr-2" /> Capture Photo
+                        </Button>
+                         <Button onClick={handleUploadClick} variant="secondary" disabled={isLoading}>
+                            <Upload className="mr-2" /> Upload Image
+                        </Button>
+                    </div>
+                )}
             </CardContent>
         </Card>
         
