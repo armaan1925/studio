@@ -39,3 +39,38 @@ export const defaultDrugInfo = {
   contraindications: 'Hypersensitivity to paracetamol or to any of the excipients. Severe liver disease.',
   warnings: 'Do not exceed the stated dose. Immediate medical advice should be sought in the event of an overdose, even if you feel well. Contains paracetamol. Do not take with any other paracetamol-containing products.',
 };
+
+export const mockPrescription = {
+  patientName: "Rahul Sharma",
+  doctorName: "Dr. Mehta",
+  medicines: [
+    "Paracetamol 500 mg - twice daily",
+    "Amoxicillin 250 mg - three times daily"
+  ],
+  dosageInstructions: ["Take after food", "Complete course for 5 days"],
+  diagnosis: "Fever and throat infection",
+  precautions: [
+    "Drink warm fluids",
+    "Take rest",
+    "Avoid cold food and drinks"
+  ],
+  summary: "You have a fever and throat infection. Please take the prescribed medicines regularly for 5 days to recover fully."
+};
+  
+export const mockMedicine = {
+    medicineName: "Paracetamol 500 mg",
+    brand: "Crocin",
+    genericName: "Acetaminophen",
+    drugClass: "Analgesic / Antipyretic",
+    medicineType: "Tablet",
+    summary: "A common over-the-counter medication used for relieving mild to moderate pain and reducing fever.",
+    uses: "• Reduces fever\n• Relieves mild to moderate pain (e.g., headache, toothache, body pain)",
+    howItWorks: "It works by blocking the release of certain chemical messengers responsible for pain and fever.",
+    safeUseInstructions: "Take 1-2 tablets every 4-6 hours as needed. Do not exceed 8 tablets (4000mg) in a 24-hour period.",
+    commonSideEffects: "• Nausea\n• Stomach pain",
+    seriousSideEffects: "• Severe skin rashes\n• Liver damage (in case of overdose)",
+    warnings: "• Do not take more than the recommended dose.\n• Consult a doctor if you have liver disease.\n• Avoid consuming alcohol.",
+    whenToConsultDoctor: "If your symptoms do not improve after 3 days, or if they get worse.",
+    prescriptionRequired: false,
+    confidence: "98%"
+};

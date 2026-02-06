@@ -7,11 +7,12 @@ import { useToast } from '@/hooks/use-toast';
 import { AlertCircle, Camera, CheckCircle, FileText, HeartPulse, Info, Loader2, ScanLine, ShieldAlert, TestTube2, XCircle, Upload, Trash2, ShieldCheck, CircleOff, NotebookText } from 'lucide-react';
 import { getPillInformation } from './actions';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import type { IdentifyPillOutput } from '@/ai/flows/identify-pill-flow';
+import type { ScanMedicineOutput } from '@/ai/flows/scan-medicine-flow';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
+import { mockMedicine } from '@/lib/data';
 
 export default function PillRecognitionClient() {
   const { toast } = useToast();
@@ -21,26 +22,9 @@ export default function PillRecognitionClient() {
   
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [pillInfo, setPillInfo] = useState<IdentifyPillOutput | null>(null);
+  const [pillInfo, setPillInfo] = useState<ScanMedicineOutput | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-
-  const mockResult = {
-    medicineName: "Paracetamol 500 mg",
-    brand: "Crocin",
-    drugClass: "Analgesic / Antipyretic",
-    medicineType: "Tablet",
-    summary: "A common over-the-counter medication used for relieving mild to moderate pain and reducing fever.",
-    uses: "• Reduces fever\n• Relieves mild to moderate pain (e.g., headache, toothache, body pain)",
-    howItWorks: "It works by blocking the release of certain chemical messengers responsible for pain and fever.",
-    safeUseInstructions: "Take 1-2 tablets every 4-6 hours as needed. Do not exceed 8 tablets (4000mg) in a 24-hour period.",
-    commonSideEffects: "• Nausea\n• Stomach pain",
-    seriousSideEffects: "• Severe skin rashes\n• Liver damage (in case of overdose)",
-    warnings: "• Do not take more than the recommended dose.\n• Consult a doctor if you have liver disease.\n• Avoid consuming alcohol.",
-    whenToConsultDoctor: "If your symptoms do not improve after 3 days, or if they get worse.",
-    prescriptionRequired: false,
-    confidence: "98%"
-  };
 
   useEffect(() => {
     const getCameraPermission = async () => {
@@ -175,33 +159,33 @@ export default function PillRecognitionClient() {
     <div className="space-y-6">
         <Badge variant="outline" className='absolute top-6 right-6'>Sample Analysis (Demo)</Badge>
         <div>
-            <h2 className="text-2xl font-bold text-primary">{mockResult.medicineName}</h2>
-            <p className="text-muted-foreground font-medium">Brand: {mockResult.brand}</p>
+            <h2 className="text-2xl font-bold text-primary">{mockMedicine.medicineName}</h2>
+            <p className="text-muted-foreground font-medium">Brand: {mockMedicine.brand}</p>
         </div>
         <div className='flex gap-2 flex-wrap'>
             <div className='flex items-center gap-1 text-sm border rounded-full px-3 py-1 bg-secondary text-secondary-foreground'>
-                <TestTube2 className='size-4' /> {mockResult.medicineType}
+                <TestTube2 className='size-4' /> {mockMedicine.medicineType}
             </div>
             <div className='flex items-center gap-1 text-sm border rounded-full px-3 py-1 bg-secondary text-secondary-foreground'>
-                <HeartPulse className='size-4' /> {mockResult.drugClass}
+                <HeartPulse className='size-4' /> {mockMedicine.drugClass}
             </div>
             <div className='flex items-center gap-1 text-sm border rounded-full px-3 py-1 bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300'>
-                <ShieldCheck className='size-4' /> AI Confidence: {mockResult.confidence}
+                <ShieldCheck className='size-4' /> AI Confidence: {mockMedicine.confidence}
             </div>
-             <div className={`flex items-center gap-1 text-sm border rounded-full px-3 py-1 ${!mockResult.prescriptionRequired ? 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300' : 'bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300'}`}>
-                {mockResult.prescriptionRequired ? <NotebookText className='size-4' /> : <CircleOff className='size-4' />}
-                {mockResult.prescriptionRequired ? 'Prescription Required' : 'OTC Drug'}
+             <div className={`flex items-center gap-1 text-sm border rounded-full px-3 py-1 ${!mockMedicine.prescriptionRequired ? 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300' : 'bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300'}`}>
+                {mockMedicine.prescriptionRequired ? <NotebookText className='size-4' /> : <CircleOff className='size-4' />}
+                {mockMedicine.prescriptionRequired ? 'Prescription Required' : 'OTC Drug'}
             </div>
         </div>
         <Separator/>
-        <InfoSection title="Summary" content={mockResult.summary} icon={<FileText className="size-5" />} />
-        <InfoSection title="Uses" content={mockResult.uses} icon={<CheckCircle className="size-5" />} />
-        <InfoSection title="How It Works" content={mockResult.howItWorks} icon={<Info className="size-5" />} />
-        <InfoSection title="Safe Use Instructions" content={mockResult.safeUseInstructions} icon={<ShieldAlert className="size-5" />} />
-        <InfoSection title="Common Side Effects" content={mockResult.commonSideEffects} icon={<AlertCircle className="size-5" />} />
-        <InfoSection title="Serious Side Effects" content={mockResult.seriousSideEffects} icon={<AlertCircle className="size-5 text-destructive" />} />
-        <InfoSection title="Warnings" content={mockResult.warnings} icon={<XCircle className="size-5 text-destructive" />} />
-        <InfoSection title="When to Consult Doctor" content={mockResult.whenToConsultDoctor} icon={<HeartPulse className="size-5" />} />
+        <InfoSection title="Summary" content={mockMedicine.summary} icon={<FileText className="size-5" />} />
+        <InfoSection title="Uses" content={mockMedicine.uses} icon={<CheckCircle className="size-5" />} />
+        <InfoSection title="How It Works" content={mockMedicine.howItWorks} icon={<Info className="size-5" />} />
+        <InfoSection title="Safe Use Instructions" content={mockMedicine.safeUseInstructions} icon={<ShieldAlert className="size-5" />} />
+        <InfoSection title="Common Side Effects" content={mockMedicine.commonSideEffects} icon={<AlertCircle className="size-5" />} />
+        <InfoSection title="Serious Side Effects" content={mockMedicine.seriousSideEffects} icon={<AlertCircle className="size-5 text-destructive" />} />
+        <InfoSection title="Warnings" content={mockMedicine.warnings} icon={<XCircle className="size-5 text-destructive" />} />
+        <InfoSection title="When to Consult Doctor" content={mockMedicine.whenToConsultDoctor} icon={<HeartPulse className="size-5" />} />
     </div>
   );
 

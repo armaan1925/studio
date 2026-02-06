@@ -19,6 +19,7 @@ import {
   User,
   Bot,
   Camera,
+  NotebookText,
 } from 'lucide-react';
 import { UserNav } from './user-nav';
 
@@ -37,6 +38,11 @@ const menuItems = [
     href: '/pill-recognition',
     label: 'Pill Recognition',
     icon: Camera,
+  },
+  {
+    href: '/medical-summary',
+    label: 'Medical Summary',
+    icon: NotebookText,
   },
   {
     href: '/learn',

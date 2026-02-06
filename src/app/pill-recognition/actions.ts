@@ -1,9 +1,9 @@
 'use server';
-import { identifyPill, type IdentifyPillInput, type IdentifyPillOutput } from '@/ai/flows/identify-pill-flow';
+import { scanMedicine, type ScanMedicineInput, type ScanMedicineOutput } from '@/ai/flows/scan-medicine-flow';
 
-export async function getPillInformation(input: IdentifyPillInput): Promise<{ success: boolean, data?: IdentifyPillOutput, error?: string }> {
+export async function getPillInformation(input: ScanMedicineInput): Promise<{ success: boolean, data?: ScanMedicineOutput, error?: string }> {
   try {
-    const result = await identifyPill(input);
+    const result = await scanMedicine(input);
     return { success: true, data: result };
   } catch (error) {
     console.error(error);
