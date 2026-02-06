@@ -1,11 +1,11 @@
 
 'use client';
 
-import React, { useRef, useMemo, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import QRCode from 'qrcode';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Download } from 'lucide-react';
+import { Download, Loader2 } from 'lucide-react';
 
 interface MedicalQRCodeProps {
   user: {
@@ -20,35 +20,28 @@ interface MedicalQRCodeProps {
 
 export function MedicalQRCode({ user }: MedicalQRCodeProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [qrUrl, setQrUrl] = useState('');
 
-  const medicalSummary = useMemo(() => ({
-    fullName: user.name,
-    age: user.age,
-    bloodGroup: user.bloodGroup,
-    allergies: user.allergies,
-    medicalConditions: user.medicalConditions,
-    emergencyContact: user.phone,
-    generatedAt: new Date().toISOString(),
-  }), [user]);
+  useEffect(() => {
+    // This code runs only on the client, after initial render
+    const medicalSummary = {
+        fullName: user.name,
+        age: user.age,
+        bloodGroup: user.bloodGroup,
+        allergies: user.allergies,
+        medicalConditions: user.medicalConditions,
+        emergencyContact: user.phone,
+        generatedAt: new Date().toISOString(),
+    };
 
-  const encodedData = useMemo(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        return btoa(JSON.stringify(medicalSummary));
-      } catch (e) {
-        console.error("Error encoding data:", e);
-        return "";
-      }
+    try {
+        const encodedData = btoa(JSON.stringify(medicalSummary));
+        const url = `${window.location.origin}/medical-id?data=${encodedData}`;
+        setQrUrl(url);
+    } catch (e) {
+        console.error("Error encoding data for QR Code:", e);
     }
-    return '';
-  }, [medicalSummary]);
-
-  const qrUrl = useMemo(() => {
-    if (typeof window !== 'undefined' && encodedData) {
-      return `${window.location.origin}/medical-id?data=${encodedData}`;
-    }
-    return '';
-  }, [encodedData]);
+  }, [user]);
 
   useEffect(() => {
     if (canvasRef.current && qrUrl) {
@@ -72,7 +65,32 @@ export function MedicalQRCode({ user }: MedicalQRCodeProps) {
     }
   };
   
-  if (!qrUrl) return null;
+  if (!qrUrl) {
+      return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Medical ID QR Code</CardTitle>
+                <CardDescription>
+                    In an emergency, anyone can scan this QR code to see your critical medical summary.
+                </CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-col md:flex-row items-center gap-6">
+                 <div className="p-4 bg-muted rounded-lg border flex items-center justify-center" style={{width: 180 + 8*2, height: 180 + 8*2}}>
+                    <Loader2 className="size-8 animate-spin text-muted-foreground" />
+                </div>
+                <div className="flex-grow text-center md:text-left">
+                    <h3 className="font-semibold text-lg">Generating Your Medical ID...</h3>
+                    <p className="text-muted-foreground mt-2 text-sm">
+                        Please wait a moment while we create your secure QR code.
+                    </p>
+                    <Button disabled className="mt-4">
+                        <Download className="mr-2" /> Download QR Code
+                    </Button>
+                </div>
+            </CardContent>
+        </Card>
+      );
+  }
 
   return (
     <Card>
