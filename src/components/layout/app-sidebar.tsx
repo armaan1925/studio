@@ -77,15 +77,16 @@ export function AppSidebar() {
             const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
             return (
               <SidebarMenuItem key={item.label}>
-                <Link href={item.href} legacyBehavior passHref>
-                  <SidebarMenuButton
-                    isActive={isActive}
-                    tooltip={{ children: item.label }}
-                  >
+                <SidebarMenuButton
+                  asChild
+                  isActive={isActive}
+                  tooltip={{ children: item.label }}
+                >
+                  <Link href={item.href}>
                     <item.icon />
                     <span>{item.label}</span>
-                  </SidebarMenuButton>
-                </Link>
+                  </Link>
+                </SidebarMenuButton>
               </SidebarMenuItem>
             );
           })}
