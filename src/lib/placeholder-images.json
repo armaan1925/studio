@@ -1,3 +1,40 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "home-hero",
+      "description": "Abstract image of a futuristic pharmacy lab",
+      "imageUrl": "https://images.unsplash.com/photo-1676313414325-2a877a95dd10?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8cGhhcm1hY3klMjBsYWJ8ZW58MHx8fHwxNzcwMzc4ODEwfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "pharmacy lab"
+    },
+    {
+      "id": "user-avatar-1",
+      "description": "Avatar for a user",
+      "imageUrl": "https://images.unsplash.com/photo-1521146764736-56c929d59c83?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxwZXJzb24lMjBmYWNlfGVufDB8fHx8MTc3MDI5NTk3NXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "person face"
+    },
+    {
+      "id": "learn-1",
+      "description": "Image representing Pharmacovigilance",
+      "imageUrl": "https://images.unsplash.com/photo-1628348070889-cb656235b4eb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxtZWRpY2FsJTIwY2hhcnR8ZW58MHx8fHwxNzcwMjY0OTgyfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "medical chart"
+    },
+    {
+      "id": "learn-2",
+      "description": "Image representing GMP/GCP/ICH Guidelines",
+      "imageUrl": "https://images.unsplash.com/photo-1659369426267-04f494c5f25c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxsYWJvcmF0b3J5JTIwZG9jdW1lbnRzfGVufDB8fHx8MTc3MDM3ODgxMHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "laboratory documents"
+    },
+    {
+      "id": "learn-3",
+      "description": "Image representing Clinical Trials",
+      "imageUrl": "https://images.unsplash.com/photo-1666214277730-e9c7e755e5a3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxkb2N0b3IlMjBwYXRpZW50fGVufDB8fHx8MTc3MDMzMzk3OXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "doctor patient"
+    },
+    {
+      "id": "learn-4",
+      "description": "Image representing Intellectual Property in Pharma",
+      "imageUrl": "https://images.unsplash.com/photo-1468779036391-52341f60b55d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxsZWdhbCUyMGRvY3VtZW50c3xlbnwwfHx8fDE3NzAzNTk1NTF8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "legal documents"
+    }
+  ]
 }
