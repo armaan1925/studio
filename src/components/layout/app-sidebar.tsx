@@ -18,6 +18,7 @@ import {
   Pill,
   User,
   Bot,
+  Camera,
 } from 'lucide-react';
 import { UserNav } from './user-nav';
 
@@ -31,6 +32,11 @@ const menuItems = [
     href: '/drug-information',
     label: 'Drug Information',
     icon: Pill,
+  },
+  {
+    href: '/pill-recognition',
+    label: 'Pill Recognition',
+    icon: Camera,
   },
   {
     href: '/learn',
@@ -68,7 +74,7 @@ export function AppSidebar() {
       <SidebarContent>
         <SidebarMenu>
           {menuItems.map((item) => {
-            const isActive = pathname === item.href;
+            const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
             return (
               <SidebarMenuItem key={item.label}>
                 <Link href={item.href} legacyBehavior passHref>
