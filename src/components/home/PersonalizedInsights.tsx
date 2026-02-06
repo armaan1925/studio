@@ -67,7 +67,14 @@ export function PersonalizedInsights() {
         });
 
         if (!response.ok) {
-          throw new Error('Failed to fetch insights from AI.');
+          const errorData = await response.json().catch(() => null);
+          console.error("AI insights API failed, falling back to mock data.", { 
+              status: response.status, 
+              error: errorData?.error || 'Unknown API error' 
+          });
+          setInsights(mockInsightsData);
+          setIsLoading(false);
+          return;
         }
 
         const data: DailyInsights = await response.json();
@@ -77,7 +84,7 @@ export function PersonalizedInsights() {
         localStorage.setItem('dailyHealthInsights', JSON.stringify({ date: today, data }));
 
       } catch (e: any) {
-        console.error("Failed to get daily insights, showing mock data as fallback:", e);
+        console.error("Failed to get daily insights due to an unexpected error, showing mock data as fallback:", e);
         // Instead of setting an error, we'll show mock data.
         setInsights(mockInsightsData);
       } finally {
