@@ -16,13 +16,13 @@ const ChatHistory = z.object({
     content: z.string(),
 });
 
-export const ChatAssistantInputSchema = z.object({
+const ChatAssistantInputSchema = z.object({
   message: z.string().describe('The user\'s message.'),
   history: z.array(ChatHistory).describe('The conversation history.'),
 });
 export type ChatAssistantInput = z.infer<typeof ChatAssistantInputSchema>;
 
-export const ChatAssistantOutputSchema = z.object({
+const ChatAssistantOutputSchema = z.object({
   response: z.string().describe('The AI assistant\'s response.'),
 });
 export type ChatAssistantOutput = z.infer<typeof ChatAssistantOutputSchema>;
