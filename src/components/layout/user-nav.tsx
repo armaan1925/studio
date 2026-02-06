@@ -11,15 +11,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { placeholderImages } from '@/lib/data';
+import { placeholderImages, currentUser as user } from '@/lib/data';
 import Link from 'next/link';
 
 export function UserNav() {
-  const user = {
-    name: 'Student User',
-    email: 'student@example.com',
-  };
-
   const avatarImage = placeholderImages.find((img) => img.id === 'user-avatar-1');
 
   return (

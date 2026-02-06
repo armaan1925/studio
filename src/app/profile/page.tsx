@@ -4,25 +4,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { placeholderImages } from "@/lib/data";
+import { placeholderImages, currentUser as user } from "@/lib/data";
 import { Award, Book, Edit, Star } from "lucide-react";
 import { MedicalQRCode } from "@/components/profile/MedicalQRCode";
 
 export default function ProfilePage() {
-    const user = {
-        name: 'Student User',
-        email: 'student@example.com',
-        institution: 'University of Pharmacy',
-        role: 'Student',
-        points: 1250,
-        achievements: ['Pharmacovigilance Master', 'Clinical Trials Novice', 'Top 10% Scorer'],
-        age: 28,
-        bloodGroup: 'O+',
-        allergies: ['Penicillin', 'Peanuts'],
-        medicalConditions: ['Asthma'],
-        phone: '+1-234-567-890'
-    };
-
     const avatarImage = placeholderImages.find((img) => img.id === 'user-avatar-1');
 
     return (

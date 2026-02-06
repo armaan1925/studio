@@ -6,6 +6,7 @@ import { FeatureCard } from '@/components/home/feature-card';
 import { HomeHero } from '@/components/home/hero';
 import { Bot, Mic, NotebookText, ScanLine } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { PersonalizedInsights } from '@/components/home/PersonalizedInsights';
 
 const features = [
   {
@@ -65,8 +66,10 @@ export default function Home() {
       <main className="container mx-auto px-4 py-8 md:py-12">
         <HomeHero />
 
+        <PersonalizedInsights />
+
         <motion.div
-          className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4"
+          className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4 mt-16 md:mt-24"
           variants={containerVariants}
           initial="hidden"
           animate="visible"

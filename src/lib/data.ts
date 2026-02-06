@@ -3,6 +3,22 @@ import { PlaceHolderImages } from './placeholder-images';
 
 export const placeholderImages: ImagePlaceholder[] = PlaceHolderImages;
 
+// Centralized mock user data
+export const currentUser = {
+    name: 'Student User',
+    email: 'student@example.com',
+    institution: 'University of Pharmacy',
+    role: 'Student',
+    points: 1250,
+    achievements: ['Pharmacovigilance Master', 'Clinical Trials Novice', 'Top 10% Scorer'],
+    age: 28,
+    bloodGroup: 'O+',
+    allergies: ['Penicillin', 'Peanuts'],
+    medicalConditions: ['Asthma'],
+    phone: '+1-234-567-890',
+    preferredLanguage: 'English',
+};
+
 export const learningTopics = [
   {
     id: 'pharmacovigilance',
