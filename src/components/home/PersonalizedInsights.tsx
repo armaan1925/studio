@@ -5,11 +5,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { currentUser } from '@/lib/data';
 import { motion } from 'framer-motion';
 import { Lightbulb, FileHeart, Sparkles, Loader2 } from 'lucide-react';
-import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
+import { Badge } from '../ui/badge';
 
 type DailyInsights = {
   tips: string[];
   historySummary: string;
+  isDemo?: boolean;
 };
 
 type CachedData = {
@@ -17,21 +18,25 @@ type CachedData = {
   data: DailyInsights;
 };
 
-const mockTips = [
-    "Remember to drink plenty of water throughout the day.",
-    "Aim for 7-8 hours of quality sleep tonight.",
-    "A short walk can boost your energy and mood.",
-];
+const mockInsightsData: DailyInsights = {
+  isDemo: true,
+  tips: [
+    "Drink at least 2–3 liters of water today to stay hydrated.",
+    "Take your medicines after food to avoid stomach irritation.",
+    "Maintain proper sleep of 7–8 hours for better recovery.",
+    "Avoid outside food if you are recovering from infection."
+  ],
+  historySummary: "You recently had mild fever and throat infection. Your prescribed medicines help reduce fever and control infection. Follow proper rest, hydration, and complete your medication course for faster recovery."
+};
+
 
 export function PersonalizedInsights() {
   const [insights, setInsights] = useState<DailyInsights | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchInsights = async () => {
       setIsLoading(true);
-      setError(null);
       const today = new Date().toISOString().split('T')[0];
 
       try {
@@ -72,8 +77,9 @@ export function PersonalizedInsights() {
         localStorage.setItem('dailyHealthInsights', JSON.stringify({ date: today, data }));
 
       } catch (e: any) {
-        console.error("Failed to get daily insights:", e);
-        setError(e.message || "Could not load AI-powered insights.");
+        console.error("Failed to get daily insights, showing mock data as fallback:", e);
+        // Instead of setting an error, we'll show mock data.
+        setInsights(mockInsightsData);
       } finally {
         setIsLoading(false);
       }
@@ -113,15 +119,13 @@ export function PersonalizedInsights() {
     </div>
   )
 
-  const renderError = () => (
-     <Alert variant="destructive">
-        <AlertTitle>Could not load insights</AlertTitle>
-        <AlertDescription>{error}</AlertDescription>
-    </Alert>
-  )
-
   const renderContent = () => (
-     <motion.div variants={containerVariants} initial="hidden" animate="visible" className="space-y-8">
+     <motion.div variants={containerVariants} initial="hidden" animate="visible" className="space-y-8 relative">
+        {insights?.isDemo && (
+             <Badge variant="outline" className="absolute -top-4 right-0 bg-cyan-400/10 text-cyan-300 border border-cyan-400/30 animate-pulse">
+                Demo AI Health Insights
+            </Badge>
+        )}
         {insights?.historySummary && (
             <motion.div variants={itemVariants}>
                 <Card className="bg-slate-900/40 border-purple-500/20 backdrop-blur-lg text-slate-100 overflow-hidden">
@@ -136,25 +140,27 @@ export function PersonalizedInsights() {
                 </Card>
             </motion.div>
         )}
-        <motion.div variants={itemVariants}>
-            <Card className="bg-slate-900/40 border-cyan-500/20 backdrop-blur-lg text-slate-100 overflow-hidden">
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-3 text-lg text-cyan-300">
-                       <Sparkles /> Daily Health Tips
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <ul className="space-y-3">
-                        {(insights?.tips || mockTips).map((tip, index) => (
-                            <li key={index} className="flex items-start gap-3 text-slate-300">
-                                <Lightbulb className="size-5 mt-0.5 shrink-0 text-cyan-400" />
-                                <span>{tip}</span>
-                            </li>
-                        ))}
-                    </ul>
-                </CardContent>
-            </Card>
-        </motion.div>
+        {insights?.tips && (
+            <motion.div variants={itemVariants}>
+                <Card className="bg-slate-900/40 border-cyan-500/20 backdrop-blur-lg text-slate-100 overflow-hidden">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-3 text-lg text-cyan-300">
+                           <Sparkles /> Daily Health Tips
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <ul className="space-y-3">
+                            {insights.tips.map((tip, index) => (
+                                <li key={index} className="flex items-start gap-3 text-slate-300">
+                                    <Lightbulb className="size-5 mt-0.5 shrink-0 text-cyan-400" />
+                                    <span>{tip}</span>
+                                </li>
+                            ))}
+                        </ul>
+                    </CardContent>
+                </Card>
+            </motion.div>
+        )}
      </motion.div>
   )
 
@@ -167,7 +173,7 @@ export function PersonalizedInsights() {
             Insights tailored just for you, updated daily.
         </p>
         <div className="max-w-3xl mx-auto">
-            {isLoading ? renderLoading() : error ? renderError() : renderContent()}
+            {isLoading ? renderLoading() : (insights ? renderContent() : null)}
         </div>
     </div>
   );
