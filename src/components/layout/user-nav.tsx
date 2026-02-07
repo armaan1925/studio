@@ -13,9 +13,21 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { placeholderImages, currentUser as user } from '@/lib/data';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import { Skeleton } from '../ui/skeleton';
 
 export function UserNav() {
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+  
   const avatarImage = placeholderImages.find((img) => img.id === 'user-avatar-1');
+
+  if (!isClient) {
+    return <Skeleton className="h-9 w-9 rounded-full" />;
+  }
 
   return (
     <DropdownMenu>

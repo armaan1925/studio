@@ -6,6 +6,7 @@ import QRCode from 'qrcode';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Download, Loader2 } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface MedicalQRCodeProps {
   user: {
@@ -21,9 +22,15 @@ interface MedicalQRCodeProps {
 export function MedicalQRCode({ user }: MedicalQRCodeProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [qrUrl, setQrUrl] = useState('');
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
-    // This code runs only on the client, after initial render
+    setIsClient(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isClient) return;
+
     const medicalSummary = {
         fullName: user.name,
         age: user.age,
@@ -41,7 +48,7 @@ export function MedicalQRCode({ user }: MedicalQRCodeProps) {
     } catch (e) {
         console.error("Error encoding data for QR Code:", e);
     }
-  }, [user]);
+  }, [user, isClient]);
 
   useEffect(() => {
     if (canvasRef.current && qrUrl) {
@@ -64,6 +71,27 @@ export function MedicalQRCode({ user }: MedicalQRCodeProps) {
       document.body.removeChild(downloadLink);
     }
   };
+
+  if (!isClient) {
+    return (
+       <Card>
+            <CardHeader>
+                <CardTitle>Medical ID QR Code</CardTitle>
+                <CardDescription>
+                    In an emergency, anyone can scan this QR code to see your critical medical summary.
+                </CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-col md:flex-row items-center gap-6">
+                <Skeleton className="h-[212px] w-[212px]" />
+                <div className="flex-grow space-y-2">
+                    <Skeleton className="h-6 w-3/4" />
+                    <Skeleton className="h-10 w-full" />
+                    <Skeleton className="h-10 w-48" />
+                </div>
+            </CardContent>
+        </Card>
+    );
+  }
   
   if (!qrUrl) {
       return (

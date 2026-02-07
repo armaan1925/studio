@@ -9,6 +9,7 @@ import { ScrollArea } from "./ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { placeholderImages } from "@/lib/data";
 import { cn } from "@/lib/utils";
+import { useState, useEffect } from "react";
 
 const AssistantAvatar = () => {
     const assistantAvatarImg = placeholderImages.find((img) => img.id === 'assistant-avatar');
@@ -58,8 +59,17 @@ const AssistantStatus = () => {
 
 export const VoiceAssistant = () => {
     const { isOpen, toggleAssistant, messages, assistantState, hasMicPermission } = useVoiceAssistant();
+    const [isClient, setIsClient] = useState(false);
+
+    useEffect(() => {
+        setIsClient(true);
+    }, []);
 
     const assistantAvatarImg = placeholderImages.find((img) => img.id === 'assistant-avatar');
+
+    if (!isClient) {
+        return null;
+    }
 
     return (
         <>
