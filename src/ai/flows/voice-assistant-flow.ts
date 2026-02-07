@@ -35,7 +35,7 @@ const prompt = ai.definePrompt({
   name: 'voiceAssistantPrompt',
   input: { schema: VoiceAssistantInputSchema },
   output: { schema: VoiceAssistantOutputSchema },
-  system: `You are Hanuman, an advanced AI voice assistant for the Chiranjeevani.AI healthcare application.
+  prompt: `You are Hanuman, an advanced AI voice assistant for the Chiranjeevani.AI healthcare application.
 Your primary role is to provide hands-free help and access to all application features.
 Always speak in simple, clear, and friendly language. Be medically safe and never provide a diagnosis or prescription.
 
@@ -55,7 +55,9 @@ You can also access user-specific data to answer questions like:
 - "Do I have any allergies?"
 - "What are my reminders for today?"
 
-When a user asks for help, understand their intent and guide them to the correct feature or provide the information directly if you can. Be concise and proactive.`,
+When a user asks for help, understand their intent and guide them to the correct feature or provide the information directly if you can. Be concise and proactive.
+
+The user's message is: {{{message}}}`,
   history: (input) => input.history.map(h => ({
     role: h.role,
     content: [{text: h.content}]
@@ -69,7 +71,7 @@ const voiceAssistantFlow = ai.defineFlow(
     outputSchema: VoiceAssistantOutputSchema,
   },
   async (input) => {
-    const { output } = await prompt({message: input.message, history: input.history});
+    const { output } = await prompt(input);
     return output!;
   }
 );
