@@ -177,7 +177,7 @@ export default function AssistantClient() {
       <div className="lg:col-span-1 flex flex-col gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>Visual Assistant</CardTitle>
+            <CardTitle>Hanuman Visual Assistant</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="aspect-video bg-muted rounded-md overflow-hidden relative flex items-center justify-center">

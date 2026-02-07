@@ -76,7 +76,7 @@ export const VoiceAssistant = () => {
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-2">
                            <AssistantAvatar />
-                           <span>AI Voice Assistant</span>
+                           <span>Hanuman Voice Assistant</span>
                         </DialogTitle>
                     </DialogHeader>
                     {hasMicPermission === false && (

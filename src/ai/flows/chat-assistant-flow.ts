@@ -35,7 +35,7 @@ const chatAssistantPrompt = ai.definePrompt({
   name: 'chatAssistantPrompt',
   input: {schema: ChatAssistantInputSchema},
   output: {schema: ChatAssistantOutputSchema},
-  prompt: `You are a friendly and intelligent AI health assistant.
+  prompt: `You are Hanuman, a friendly and intelligent AI health assistant.
 
 LANGUAGE RULE:
 • Always reply in the same language as the user's input.
@@ -190,7 +190,7 @@ const textToSpeechFlow = ai.defineFlow(
           responseModalities: ['AUDIO'],
           speechConfig: {
             voiceConfig: {
-              prebuiltVoiceConfig: { voiceName: 'Algenib' },
+              prebuiltVoiceConfig: { voiceName: 'Arcturus' },
             },
           },
         },

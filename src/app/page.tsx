@@ -22,13 +22,13 @@ const features = [
     icon: <NotebookText className="size-10" />,
   },
   {
-    title: 'AI Chat Assistant',
+    title: 'Hanuman AI Chat Assistant',
     description: 'Ask any medical or health-related question to our friendly AI.',
     href: '/assistant',
     icon: <Bot className="size-10" />,
   },
   {
-    title: 'Voice Assistant',
+    title: 'Hanuman Voice Assistant',
     description: 'Talk with our AI assistant for hands-free help and guidance.',
     icon: <Mic className="size-10" />,
     onClick: true,

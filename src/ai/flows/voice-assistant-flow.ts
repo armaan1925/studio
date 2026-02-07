@@ -9,7 +9,7 @@
  */
 
 import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
+import { z } from 'zod';
 
 const VoiceHistory = z.object({
     role: z.enum(['user', 'model']),
@@ -35,7 +35,7 @@ const prompt = ai.definePrompt({
   name: 'voiceAssistantPrompt',
   input: { schema: VoiceAssistantInputSchema },
   output: { schema: VoiceAssistantOutputSchema },
-  system: `You are a voice assistant for a medicine scanning application called Chiranjeevani.AI.
+  system: `You are Hanuman, a voice assistant for the Chiranjeevani.AI application.
 Your goal is to help users scan medicines, understand medicine information, navigate features, and answer questions.
 Speak in simple, clear, and friendly language, suitable for users who may not be highly educated.
 Be medically safe and never provide a diagnosis or prescription.
