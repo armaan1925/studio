@@ -14,7 +14,6 @@ import { placeholderImages } from '@/lib/data';
 import { getChatResponse, getSpokenResponse } from './actions';
 import { cn } from '@/lib/utils';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Skeleton } from '@/components/ui/skeleton';
 import type { SummarizeReportOutput } from '@/ai/flows/summarize-report-flow';
 
 type Message = {
@@ -46,11 +45,6 @@ function ReportContextAlert({ reportContext, onDismiss }: { reportContext: Summa
 }
 
 export default function AssistantClient() {
-  const [isClient, setIsClient] = useState(false);
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
-
   const searchParams = useSearchParams();
   const { toast } = useToast();
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -134,7 +128,7 @@ export default function AssistantClient() {
         toast({
             variant: 'destructive',
             title: 'Speech Recognition Error',
-            description: `Could not understand audio. Please try again. Error: ${'\'\'\''}${event.error}${'\'\'\''}`,
+            description: `Could not understand audio. Please try again. Error: '${"'"}''${event.error}${'\'\''}'`,
         });
         setIsListening(false);
       };
@@ -187,9 +181,7 @@ export default function AssistantClient() {
       }
     };
 
-    if(isClient) {
-      getCameraPermission();
-    }
+    getCameraPermission();
     
     return () => {
         if (videoRef.current && videoRef.current.srcObject) {
@@ -197,7 +189,7 @@ export default function AssistantClient() {
             stream.getTracks().forEach(track => track.stop());
         }
     }
-  }, [toast, isClient]);
+  }, [toast]);
 
   const handlePlayAudio = async (text: string) => {
     setIsLoading(true);
@@ -216,38 +208,6 @@ export default function AssistantClient() {
       });
     }
   };
-
-  if (!isClient) {
-    return (
-      <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-1 flex flex-col gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Hanuman Visual Assistant</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Skeleton className="aspect-video w-full rounded-md" />
-            </CardContent>
-          </Card>
-        </div>
-        <div className="lg:col-span-2">
-          <Card className="h-full flex flex-col">
-            <CardHeader>
-              <CardTitle>Chat</CardTitle>
-            </CardHeader>
-            <CardContent className="flex-grow flex flex-col gap-4">
-              <div className="flex-grow h-[400px] border rounded-md" />
-              <div className="flex items-center gap-2">
-                <Skeleton className="h-10 flex-grow" />
-                <Skeleton className="h-10 w-10" />
-                <Skeleton className="h-10 w-10" />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">

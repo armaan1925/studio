@@ -9,16 +9,14 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
-import type { SummarizeReportOutput } from './summarize-report-flow';
+import { SummarizeReportOutputSchema } from '@/ai/schemas';
 
 
 // We don't export the Zod schema directly for 'use server' files.
 const SummarizeMultipleReportsInputSchema = z.object({
-    reports: z.array(z.any()).describe("An array of medical report summary objects."),
+    reports: z.array(SummarizeReportOutputSchema).describe("An array of medical report summary objects."),
 });
-export type SummarizeMultipleReportsInput = {
-    reports: SummarizeReportOutput[];
-}
+export type SummarizeMultipleReportsInput = z.infer<typeof SummarizeMultipleReportsInputSchema>;
 
 const SummarizeMultipleReportsOutputSchema = z.object({
   combinedSummary: z.string().describe("A 2-3 sentence combined summary of the user's health status based on all provided reports. It should be written in simple, non-medical language."),
