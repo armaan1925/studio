@@ -20,26 +20,32 @@ export const useSpeechRecognition = ({ onResult, onEnd, onError }: UseSpeechReco
   const hasSupport = typeof window !== 'undefined' && ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window);
 
   useEffect(() => {
-    if (!hasSupport) return;
+    if (!hasSupport) {
+      console.warn('Speech recognition not supported by this browser.');
+      return;
+    }
     
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     recognitionRef.current = new SpeechRecognition();
     const recognition = recognitionRef.current;
-    recognition.continuous = false; // We want to process one command at a time
+    recognition.continuous = false; // A continuous loop is managed by the context, not the API directly.
     recognition.interimResults = false;
+    recognition.lang = 'en-US';
 
     recognition.onresult = (event: any) => {
       const transcript = event.results[event.results.length - 1][0].transcript.trim();
+      console.log('STT Result:', transcript);
       onResult(transcript);
     };
 
     recognition.onerror = (event: any) => {
-      console.error('Speech recognition error:', event.error);
+      console.error('STT Error:', event.error);
       if (onError) onError(event.error);
       setIsListening(false);
     };
     
     recognition.onend = () => {
+      console.log('STT Service Ended.');
       setIsListening(false);
       if (onEnd) onEnd();
     };
@@ -47,6 +53,7 @@ export const useSpeechRecognition = ({ onResult, onEnd, onError }: UseSpeechReco
     return () => {
       if (recognitionRef.current) {
         recognitionRef.current.stop();
+        console.log('STT Cleanup: recognition stopped.');
       }
     };
   }, [hasSupport, onResult, onEnd, onError]);
@@ -56,6 +63,7 @@ export const useSpeechRecognition = ({ onResult, onEnd, onError }: UseSpeechReco
       try {
         recognitionRef.current.start();
         setIsListening(true);
+        console.log('STT Started.');
       } catch (e) {
          console.error("Could not start recognition:", e);
          setIsListening(false);
@@ -67,6 +75,7 @@ export const useSpeechRecognition = ({ onResult, onEnd, onError }: UseSpeechReco
     if (recognitionRef.current && isListening) {
       recognitionRef.current.stop();
       setIsListening(false);
+       console.log('STT Stopped.');
     }
   };
 

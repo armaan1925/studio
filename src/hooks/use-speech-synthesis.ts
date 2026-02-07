@@ -32,7 +32,9 @@ export const useSpeechSynthesis = (): UseSpeechSynthesis => {
             voices.find(v => v.lang.startsWith('en') && v.name.includes('Google US English')) ||
             voices.find(v => v.lang.startsWith('en') && (v as any).gender === 'male');
         
-        setSelectedVoice(maleVoice || voices.find(v => v.lang.startsWith('en')) || voices[0]);
+        const chosenVoice = maleVoice || voices.find(v => v.lang.startsWith('en')) || voices[0];
+        setSelectedVoice(chosenVoice);
+        console.log('TTS Voice selected:', chosenVoice?.name);
       }
     };
 
@@ -46,12 +48,14 @@ export const useSpeechSynthesis = (): UseSpeechSynthesis => {
   const speak = (text: string): Promise<void> => {
     return new Promise((resolve, reject) => {
       if (!hasSupport || !synthRef) {
+        console.error('TTS Error: Speech synthesis not supported');
         reject('Speech synthesis not supported');
         return;
       }
       
       if (synthRef.speaking) {
-        synthRef.cancel(); // Stop any current speech
+        console.log('TTS: Cancelling previous speech.');
+        synthRef.cancel();
       }
 
       const utterance = new SpeechSynthesisUtterance(text);
@@ -61,18 +65,21 @@ export const useSpeechSynthesis = (): UseSpeechSynthesis => {
       }
 
       utterance.onstart = () => {
+        console.log('TTS started for:', text);
         setIsSpeaking(true);
       };
       utterance.onend = () => {
+        console.log('TTS finished.');
         setIsSpeaking(false);
         resolve();
       };
       utterance.onerror = (event) => {
-        console.error('Speech synthesis error:', event.error);
+        console.error('TTS Error:', event.error);
         setIsSpeaking(false);
         reject(event.error);
       };
-
+      
+      console.log('TTS: Queuing speech.');
       synthRef.speak(utterance);
     });
   };
@@ -80,6 +87,7 @@ export const useSpeechSynthesis = (): UseSpeechSynthesis => {
   useEffect(() => {
     return () => {
       if (hasSupport && synthRef?.speaking) {
+        console.log('TTS Cleanup: Cancelling speech on unmount.');
         synthRef.cancel();
       }
     };

@@ -37,31 +37,38 @@ export const VoiceAssistantProvider = ({ children }: { children: ReactNode }) =>
 
   const processAndRespond = useCallback(async (transcript: string) => {
     setAssistantState('thinking');
+    console.log('User said:', transcript);
     setMessages(prev => [...prev, { role: 'user', content: transcript }]);
     
     try {
       const res = await fetch('/api/assistant', {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: transcript, history: messages })
       });
-      if (!res.ok) throw new Error("API failed");
+      if (!res.ok) {
+        throw new Error(`API failed with status ${res.status}`);
+      }
 
       const data = await res.json();
+      console.log('AI response received:', data.reply);
       setMessages(prev => [...prev, { role: 'model', content: data.reply }]);
       setAssistantState('speaking');
       await speak(data.reply);
 
       if (activeAndOpen.current) {
+        console.log('Conversation loop: Resuming listening.');
         setAssistantState('listening');
       } else {
+        console.log('Assistant closed during speech, going idle.');
         setAssistantState('idle');
       }
 
     } catch (error) {
-      console.error(error);
+      console.error('Failed to process and respond:', error);
       setAssistantState('error');
-      await speak("Sorry, something went wrong.");
-      if (activeAndOpen.current) {
+      await speak("Sorry, I'm having a little trouble right now. Please try again in a moment.");
+       if (activeAndOpen.current) {
         setAssistantState('listening');
       } else {
         setAssistantState('idle');
@@ -77,18 +84,31 @@ export const VoiceAssistantProvider = ({ children }: { children: ReactNode }) =>
       }
     },
     onEnd: () => {
-      // If recognition ends unexpectedly, and we should be listening, restart.
+      // If recognition ends unexpectedly while we should be listening, restart it.
       if (activeAndOpen.current && assistantState === 'listening') {
+        console.log('Speech recognition ended unexpectedly. Restarting...');
         startListening();
+      }
+    },
+    onError: async (error) => {
+      console.error('Speech recognition error in hook:', error);
+      setAssistantState('error');
+      // Avoid speaking if it's a permission error, as the UI shows a permanent banner.
+      if (error !== 'not-allowed' && error !== 'service-not-allowed') {
+        await speak("Sorry, I didn't quite catch that. Could you please say it again?");
+      }
+      if(activeAndOpen.current){
+        setAssistantState('listening');
       }
     }
   });
 
   // Main state machine effect
   useEffect(() => {
+    console.log(`Assistant state changed to: ${assistantState}, isOpen: ${isOpen}`);
     if (!isOpen) {
         if(isListening) stopListening();
-        setAssistantState('idle');
+        if(assistantState !== 'idle') setAssistantState('idle');
         return;
     }
 
@@ -101,39 +121,59 @@ export const VoiceAssistantProvider = ({ children }: { children: ReactNode }) =>
 
 
   const checkMicPermission = useCallback(async () => {
-    if (typeof window === 'undefined' || !navigator.mediaDevices) {
+    if (typeof window === 'undefined' || !navigator.mediaDevices?.getUserMedia) {
+        console.log('Mic permission: not supported by browser.');
         setHasMicPermission(false);
         return false;
     }
     try {
-      // This will prompt the user for permission if not already granted.
+      // Check current permission status without prompting
+      const permissionStatus = await navigator.permissions.query({ name: 'microphone' as PermissionName });
+      if (permissionStatus.state === 'granted') {
+          setHasMicPermission(true);
+          return true;
+      }
+      if (permissionStatus.state === 'denied') {
+          console.log('Mic permission: denied.');
+          setHasMicPermission(false);
+          return false;
+      }
+      
+      // If prompt is needed, this will trigger it.
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      // We don't need the stream, just the confirmation of permission.
       stream.getTracks().forEach(track => track.stop());
+      console.log('Mic permission: granted.');
       setHasMicPermission(true);
       return true;
     } catch (e) {
-      console.error("Microphone permission was denied.");
+      console.error("Mic permission error:", e);
       setHasMicPermission(false);
       return false;
     }
   }, []);
   
   useEffect(() => {
-    checkMicPermission();
-  }, [checkMicPermission]);
+    // Check permission silently on load
+    if (typeof window !== 'undefined' && navigator.permissions) {
+        navigator.permissions.query({ name: 'microphone' as PermissionName }).then(status => {
+            setHasMicPermission(status.state === 'granted');
+        });
+    }
+  }, []);
 
   const toggleAssistant = useCallback(async () => {
     if (isOpen) {
+      console.log('Toggling assistant: CLOSE');
       setIsOpen(false);
     } else {
+      console.log('Toggling assistant: OPEN');
       const hasPermission = await checkMicPermission();
       if(hasPermission) {
         setMessages([]);
-        setAssistantState('listening');
         setIsOpen(true);
+        setAssistantState('listening');
       } else {
-          setIsOpen(true); // Open to show the permission error
+        setIsOpen(true); // Open to show the permission error message in the dialog
       }
     }
   }, [isOpen, checkMicPermission]);
