@@ -10,7 +10,7 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
-export const DailyInsightsInputSchema = z.object({
+const DailyInsightsInputSchema = z.object({
   userProfile: z.object({
     name: z.string(),
     age: z.number(),
@@ -21,7 +21,7 @@ export const DailyInsightsInputSchema = z.object({
 });
 export type DailyInsightsInput = z.infer<typeof DailyInsightsInputSchema>;
 
-export const DailyInsightsOutputSchema = z.object({
+const DailyInsightsOutputSchema = z.object({
   tips: z.array(z.string()).describe('A list of 2-3 short, personalized daily health tips.'),
   historySummary: z.string().describe('A 1-2 sentence summary of the user\'s key medical history points.'),
 });

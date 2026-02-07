@@ -11,7 +11,7 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 
-export const SummarizeReportInputSchema = z.object({
+const SummarizeReportInputSchema = z.object({
   imageDataUri: z
     .string()
     .describe(
@@ -31,7 +31,7 @@ const AbnormalFindingSchema = z.object({
     interpretation: z.string().describe('A very simple, one-sentence interpretation of this finding (e.g., "This is slightly lower than normal.", "This is higher than the normal range.").'),
 });
 
-export const SummarizeReportOutputSchema = z.object({
+const SummarizeReportOutputSchema = z.object({
     isReportDetected: z.boolean().describe("Set to true if a medical report is detected in the image, otherwise false."),
     patientName: z.string().optional().describe("The patient's name, if found."),
     reportDate: z.string().optional().describe("The date of the report, if found."),
