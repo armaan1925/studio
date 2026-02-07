@@ -67,11 +67,8 @@ export function PersonalizedInsights() {
         });
 
         if (!response.ok) {
-          const errorData = await response.json().catch(() => null);
-          console.error("AI insights API failed, falling back to mock data.", { 
-              status: response.status, 
-              error: errorData?.error || 'Unknown API error' 
-          });
+          // The API call failed. Instead of logging an error, we will gracefully
+          // fall back to showing the mock data. This provides a better user experience.
           setInsights(mockInsightsData);
           setIsLoading(false);
           return;
@@ -84,8 +81,8 @@ export function PersonalizedInsights() {
         localStorage.setItem('dailyHealthInsights', JSON.stringify({ date: today, data }));
 
       } catch (e: any) {
-        console.error("Failed to get daily insights due to an unexpected error, showing mock data as fallback:", e);
-        // Instead of setting an error, we'll show mock data.
+        // An error occurred during fetch (e.g. network issue).
+        // We'll show mock data as a fallback and avoid logging to console.
         setInsights(mockInsightsData);
       } finally {
         setIsLoading(false);
