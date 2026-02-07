@@ -1,6 +1,6 @@
-# MediMind AI
+# Chiranjeevani.AI
 
-This is a Next.js application for MediMind AI, an AI-powered education and safety platform for pharmacy students and professionals.
+This is a Next.js application for Chiranjeevani.AI, an AI-powered education and safety platform for pharmacy students and professionals.
 
 ## Core Features
 

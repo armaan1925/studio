@@ -18,14 +18,14 @@ export function Navbar({ className }: { className?: string }) {
         <div className="mr-4 hidden md:flex">
           <Link href="/" className="flex items-center gap-2">
             <Logo className="size-6 text-primary" />
-            <span className="font-bold">MediMind AI</span>
+            <span className="font-bold">Chiranjeevani.AI</span>
           </Link>
         </div>
         
         {/* For mobile view, we integrate the sidebar trigger */}
         <SidebarTrigger className="md:hidden" />
         <div className="h-8 w-px bg-border md:hidden mx-4" />
-        <h1 className="text-xl font-semibold tracking-tight md:hidden">MediMind AI</h1>
+        <h1 className="text-xl font-semibold tracking-tight md:hidden">Chiranjeevani.AI</h1>
         
         <div className="ml-auto flex items-center gap-4">
           <UserNav />

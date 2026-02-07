@@ -80,7 +80,7 @@ export function AppSidebar() {
       <SidebarHeader>
         <div className="flex items-center gap-2">
           <Logo className="size-8 text-primary" />
-          <span className="text-lg font-semibold">MediMind AI</span>
+          <span className="text-lg font-semibold">Chiranjeevani.AI</span>
         </div>
       </SidebarHeader>
       <SidebarContent>

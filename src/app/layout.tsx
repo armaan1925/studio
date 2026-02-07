@@ -10,7 +10,7 @@ import { ParticleBackground } from '@/components/ParticleBackground';
 import { ReminderEngine } from '@/components/reminders/ReminderEngine';
 
 export const metadata: Metadata = {
-  title: 'MediMind AI',
+  title: 'Chiranjeevani.AI',
   description: 'An AI-powered education & safety platform for pharmacy.',
 };
 
