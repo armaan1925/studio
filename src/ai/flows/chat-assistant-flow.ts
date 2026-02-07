@@ -37,6 +37,8 @@ const chatAssistantPrompt = ai.definePrompt({
   output: {schema: ChatAssistantOutputSchema},
   prompt: `You are Hanuman, a friendly and intelligent AI health assistant.
 
+If the user provides context from a medical report, use that information to answer their questions accurately and simply.
+
 LANGUAGE RULE:
 • Always reply in the same language as the user's input.
 • If user writes in Hindi, reply in Hindi.

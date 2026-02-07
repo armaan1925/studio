@@ -1,3 +1,4 @@
+'use server';
 import { config } from 'dotenv';
 config();
 
@@ -9,3 +10,4 @@ import '@/ai/flows/scan-medicine-flow.ts';
 import '@/ai/flows/voice-assistant-flow.ts';
 import '@/ai/flows/summarize-prescription-flow.ts';
 import '@/ai/flows/generate-daily-insights-flow.ts';
+import '@/ai/flows/summarize-report-flow.ts';

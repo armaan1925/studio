@@ -1,6 +1,7 @@
 import type { ImagePlaceholder } from './placeholder-images';
 import { PlaceHolderImages } from './placeholder-images';
 import type { Reminder } from './reminders';
+import type { SummarizeReportOutput } from '@/ai/flows/summarize-report-flow';
 
 export const placeholderImages: ImagePlaceholder[] = PlaceHolderImages;
 
@@ -103,6 +104,29 @@ export const mockMedicine = {
     whenToConsultDoctor: "If your symptoms do not improve after 3 days, or if they get worse.",
     prescriptionRequired: false,
     confidence: "98%"
+};
+
+export const mockReport: SummarizeReportOutput = {
+  isReportDetected: true,
+  patientName: "Demo User",
+  reportDate: "2024-05-10",
+  summaryShort: "Your blood sugar is slightly high, but other tests are normal.",
+  summaryDetailed: "This report shows a slightly elevated blood glucose level, which suggests pre-diabetes or a need to monitor your diet. Your cholesterol and other markers are within the healthy range. No major issues were detected.",
+  riskLevel: "moderate",
+  abnormalFindings: [
+    {
+      testName: "Blood Glucose (Fasting)",
+      value: "115 mg/dL",
+      normalRange: "70-100 mg/dL",
+      interpretation: "This is slightly higher than the normal range."
+    }
+  ],
+  doctorRemarks: "Advise patient to reduce sugar intake and re-test in 3 months.",
+  nextSteps: [
+    "Consult your doctor to discuss the blood sugar reading.",
+    "Consider dietary changes to lower sugar intake.",
+    "Monitor for symptoms like excessive thirst or urination."
+  ]
 };
 
 export const mockReminders: Reminder[] = [

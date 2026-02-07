@@ -1,19 +1,21 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useMemo } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
-import { Bot, Loader2, Mic, Send, User, Volume2, Waves } from 'lucide-react';
+import { Bot, Loader2, Mic, Send, User, Volume2, Waves, FileText, X } from 'lucide-react';
 import Image from 'next/image';
 import { placeholderImages } from '@/lib/data';
 import { getChatResponse, getSpokenResponse } from './actions';
 import { cn } from '@/lib/utils';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
+import type { SummarizeReportOutput } from '@/ai/flows/summarize-report-flow';
 
 type Message = {
   role: 'user' | 'model';
@@ -28,12 +30,28 @@ declare global {
   }
 }
 
+function ReportContextAlert({ reportContext, onDismiss }: { reportContext: SummarizeReportOutput, onDismiss: () => void }) {
+  return (
+    <Alert className="mb-4 bg-primary/10 border-primary/20 relative">
+      <FileText className="h-4 w-4" />
+      <AlertTitle className='font-semibold'>Analyzing Medical Report</AlertTitle>
+      <AlertDescription>
+        I'm ready to answer questions about the scanned report ({reportContext.summaryShort}).
+      </AlertDescription>
+      <Button variant="ghost" size="icon" className='absolute top-2 right-2 h-6 w-6' onClick={onDismiss}>
+        <X className='h-4 w-4' />
+      </Button>
+    </Alert>
+  );
+}
+
 export default function AssistantClient() {
   const [isClient, setIsClient] = useState(false);
   useEffect(() => {
     setIsClient(true);
   }, []);
 
+  const searchParams = useSearchParams();
   const { toast } = useToast();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
@@ -46,6 +64,54 @@ export default function AssistantClient() {
   const userAvatar = placeholderImages.find((img) => img.id === 'user-avatar-1');
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
+  const [reportContext, setReportContext] = useState<SummarizeReportOutput | null>(null);
+
+  const initialContextMessage = useMemo(() => {
+    const contextParam = searchParams.get('reportContext');
+    if (!contextParam) return null;
+
+    try {
+      const decodedContext = JSON.parse(atob(contextParam));
+      setReportContext(decodedContext);
+      return `CONTEXT: The user has uploaded the following medical report. Use this data to answer their questions. REPORT_DATA: ${JSON.stringify(decodedContext)}`;
+    } catch (e) {
+      console.error("Failed to parse report context:", e);
+      return null;
+    }
+  }, [searchParams]);
+
+  const handleSendMessage = async (messageText?: string) => {
+    const text = messageText || input;
+    if (!text.trim()) return;
+
+    const newUserMessage: Message = { role: 'user', content: text };
+    setMessages((prev) => [...prev, newUserMessage]);
+    setInput('');
+    setIsLoading(true);
+
+    let history = messages.map(m => ({role: m.role, content: m.content}));
+
+    // If there's an initial context and this is the first message, prepend it.
+    if (initialContextMessage && messages.length === 0) {
+      history.unshift({ role: 'user', content: initialContextMessage });
+    }
+
+    const result = await getChatResponse({ message: text, history });
+
+    if (result.success && result.data) {
+      const assistantMessage: Message = { role: 'model', content: result.data.response };
+      setMessages((prev) => [...prev, assistantMessage]);
+    } else {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: result.error,
+      });
+       // Restore user message on error
+      setMessages(prev => prev.slice(0, -1));
+    }
+    setIsLoading(false);
+  };
 
   useEffect(() => {
     // Initialize SpeechRecognition
@@ -77,7 +143,7 @@ export default function AssistantClient() {
         setIsListening(false);
       };
     }
-  }, [toast]);
+  }, [toast, handleSendMessage]);
   
   const handleVoiceInput = () => {
     if (isListening) {
@@ -121,7 +187,9 @@ export default function AssistantClient() {
       }
     };
 
-    getCameraPermission();
+    if(isClient) {
+      getCameraPermission();
+    }
     
     return () => {
         if (videoRef.current && videoRef.current.srcObject) {
@@ -129,35 +197,7 @@ export default function AssistantClient() {
             stream.getTracks().forEach(track => track.stop());
         }
     }
-  }, [toast]);
-
-  const handleSendMessage = async (messageText?: string) => {
-    const text = messageText || input;
-    if (!text.trim()) return;
-
-    const newUserMessage: Message = { role: 'user', content: text };
-    setMessages((prev) => [...prev, newUserMessage]);
-    setInput('');
-    setIsLoading(true);
-
-    const history = messages.map(m => ({role: m.role, content: m.content}));
-
-    const result = await getChatResponse({ message: text, history });
-
-    if (result.success && result.data) {
-      const assistantMessage: Message = { role: 'model', content: result.data.response };
-      setMessages((prev) => [...prev, assistantMessage]);
-    } else {
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: result.error,
-      });
-       // Restore user message on error
-      setMessages(prev => prev.slice(0, -1));
-    }
-    setIsLoading(false);
-  };
+  }, [toast, isClient]);
 
   const handlePlayAudio = async (text: string) => {
     setIsLoading(true);
@@ -253,6 +293,7 @@ export default function AssistantClient() {
             <CardTitle>Chat</CardTitle>
           </CardHeader>
           <CardContent className="flex-grow flex flex-col gap-4">
+            {reportContext && <ReportContextAlert reportContext={reportContext} onDismiss={() => setReportContext(null)} />}
             <ScrollArea className="flex-grow h-[400px] pr-4">
               <div className="space-y-4">
                 {messages.map((message, index) => (
@@ -292,7 +333,7 @@ export default function AssistantClient() {
                     )}
                   </div>
                 ))}
-                {isLoading && messages[messages.length - 1]?.role === 'user' && (
+                {isLoading && messages.length > 0 && messages[messages.length - 1]?.role === 'user' && (
                     <div className="flex items-start gap-3 justify-start">
                          <Avatar className="size-8">
                             {assistantAvatar && <AvatarImage src={assistantAvatar.imageUrl} alt="AI" />}

@@ -1,25 +1,28 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { AlertCircle, Camera, CheckCircle, FileText, HeartPulse, Info, Languages, Loader2, Mic, ScanLine, ShieldAlert, TestTube2, XCircle, Upload, Trash2, ShieldCheck, CircleOff, NotebookText, Stethoscope, User, FileClock, Activity, BellRing } from 'lucide-react';
-import { getPrescriptionSummary, getMedicineInfo } from './actions';
+import { AlertCircle, Camera, CheckCircle, FileText, HeartPulse, Info, Languages, Loader2, Mic, ScanLine, ShieldAlert, TestTube2, XCircle, Upload, Trash2, ShieldCheck, CircleOff, NotebookText, Stethoscope, User, FileClock, Activity, BellRing, BrainCircuit, ArrowRight } from 'lucide-react';
+import { getPrescriptionSummary, getMedicineInfo, getReportSummary } from './actions';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import type { SummarizePrescriptionOutput, MedicineInfo } from '@/ai/flows/summarize-prescription-flow';
 import type { ScanMedicineOutput } from '@/ai/flows/scan-medicine-flow';
+import type { SummarizeReportOutput, AbnormalFinding } from '@/ai/flows/summarize-report-flow';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { mockMedicine, mockPrescription } from '@/lib/data';
+import { mockMedicine, mockPrescription, mockReport } from '@/lib/data';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useSpeechSynthesis } from '@/hooks/use-speech-synthesis';
 import { addRemindersFromMedicines } from '@/lib/reminders';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 const languages = [
     { value: 'English', label: 'English' },
@@ -46,6 +49,7 @@ export default function MedicalSummaryClient() {
 
     const [prescriptionResult, setPrescriptionResult] = useState<SummarizePrescriptionOutput | null>(null);
     const [medicineResult, setMedicineResult] = useState<ScanMedicineOutput | null>(null);
+    const [reportResult, setReportResult] = useState<SummarizeReportOutput | null>(null);
     const [error, setError] = useState<string | null>(null);
 
     const [remindersToCreate, setRemindersToCreate] = useState<MedicineInfo[]>([]);
@@ -99,7 +103,7 @@ export default function MedicalSummaryClient() {
         if (!imagePreview) return;
         setIsLoading(true);
         clearResults();
-
+    
         let result;
         if (activeTab === 'prescription') {
             result = await getPrescriptionSummary({ imageDataUri: imagePreview, language: selectedLanguage });
@@ -107,12 +111,21 @@ export default function MedicalSummaryClient() {
                 setPrescriptionResult(result.data);
                 setRemindersToCreate(result.data.medicines);
             }
-        } else {
+        } else if (activeTab === 'medicine') {
             result = await getMedicineInfo({ imageDataUri: imagePreview });
             if (result.success && result.data) setMedicineResult(result.data);
+        } else if (activeTab === 'report') {
+            result = await getReportSummary({ imageDataUri: imagePreview, language: selectedLanguage });
+            if (result.success && result.data) {
+                if (result.data.isReportDetected) {
+                    setReportResult(result.data);
+                } else {
+                    setError(result.data.summaryShort || "Could not detect a medical report in the image.");
+                }
+            }
         }
-
-        if (!result.success) {
+    
+        if (result && !result.success) {
             setError(result.error ?? 'An unknown error occurred.');
             toast({ variant: 'destructive', title: 'Analysis Failed', description: result.error });
         }
@@ -123,8 +136,10 @@ export default function MedicalSummaryClient() {
         let textToSpeak = '';
         if (activeTab === 'prescription') {
             textToSpeak = prescriptionResult?.summary || mockPrescription.summary;
-        } else {
+        } else if (activeTab === 'medicine') {
             textToSpeak = medicineResult?.summary || mockMedicine.summary;
+        } else if (activeTab === 'report') {
+            textToSpeak = reportResult?.summaryShort || mockReport.summaryShort;
         }
         speak(textToSpeak);
     }
@@ -132,6 +147,7 @@ export default function MedicalSummaryClient() {
     const clearResults = () => {
         setPrescriptionResult(null);
         setMedicineResult(null);
+        setReportResult(null);
         setError(null);
         setRemindersToCreate([]);
     };
@@ -180,8 +196,10 @@ export default function MedicalSummaryClient() {
         <Card>
             <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                    {activeTab === 'prescription' ? <Stethoscope className="text-primary" /> : <TestTube2 className="text-primary" />}
-                    {activeTab === 'prescription' ? 'Prescription Scanner' : 'Medicine Scanner'}
+                    {activeTab === 'prescription' && <Stethoscope className="text-primary" />}
+                    {activeTab === 'medicine' && <TestTube2 className="text-primary" />}
+                    {activeTab === 'report' && <FileText className="text-primary" />}
+                    {activeTab === 'prescription' ? 'Prescription Scanner' : activeTab === 'medicine' ? 'Medicine Scanner' : 'Report Scanner'}
                 </CardTitle>
             </CardHeader>
             <CardContent>
@@ -265,11 +283,77 @@ export default function MedicalSummaryClient() {
         </div>
     );
 
+    const renderReportResult = (data: SummarizeReportOutput, isMock = false) => {
+        const riskColor = data.riskLevel === 'high' ? 'text-red-400' : data.riskLevel === 'moderate' ? 'text-amber-400' : 'text-green-400';
+        const context = btoa(JSON.stringify(data));
+        return (
+          <div className="space-y-6">
+            {isMock && <Badge variant="outline" className='absolute top-6 right-6'>Sample Analysis (Demo)</Badge>}
+            
+            <div className='bg-primary/10 border border-primary/20 rounded-lg p-4'>
+                <h3 className="font-semibold text-lg flex items-center gap-2 mb-2"><BrainCircuit className="size-5 text-primary" /> One-Line AI Summary</h3>
+                <p className='text-base'>{data.summaryShort}</p>
+            </div>
+            
+            <div className="flex items-center justify-between rounded-lg border p-3">
+                <div>
+                    <p className="text-sm font-medium text-muted-foreground">AI Risk Assessment</p>
+                    <p className={`text-lg font-bold ${riskColor}`}>{data.riskLevel.charAt(0).toUpperCase() + data.riskLevel.slice(1)}</p>
+                </div>
+                <Button asChild>
+                    <Link href={`/assistant?reportContext=${context}`}>
+                        Ask AI about this report <ArrowRight className='ml-2' />
+                    </Link>
+                </Button>
+            </div>
+
+            <Accordion type="single" collapsible className="w-full">
+                {data.abnormalFindings && data.abnormalFindings.length > 0 && (
+                    <AccordionItem value="abnormal">
+                        <AccordionTrigger>Abnormal Findings ({data.abnormalFindings.length})</AccordionTrigger>
+                        <AccordionContent>
+                           <ul className='space-y-3'>
+                             {data.abnormalFindings.map((finding, i) => (
+                                <li key={i} className='p-3 rounded-md border border-amber-500/20 bg-amber-500/10'>
+                                    <div className='flex justify-between items-center font-semibold'>
+                                        <span>{finding.testName}</span>
+                                        <span>{finding.value}</span>
+                                    </div>
+                                    <div className='text-xs text-muted-foreground'>Normal Range: {finding.normalRange}</div>
+                                    <p className='text-sm mt-1'>{finding.interpretation}</p>
+                                </li>
+                             ))}
+                           </ul>
+                        </AccordionContent>
+                    </AccordionItem>
+                )}
+                 <AccordionItem value="details">
+                    <AccordionTrigger>Detailed Analysis</AccordionTrigger>
+                    <AccordionContent>
+                        <InfoSection title="Detailed Summary" content={data.summaryDetailed} />
+                        <Separator className='my-4'/>
+                        <InfoSection title="Doctor's Remarks" content={data.doctorRemarks || "No specific remarks found."} />
+                        <Separator className='my-4'/>
+                        <InfoSection title="Recommended Next Steps" content={<ul>{data.nextSteps.map((step, i) => <li key={i}>• {step}</li>)}</ul>} />
+                    </AccordionContent>
+                </AccordionItem>
+            </Accordion>
+          </div>
+        )
+    };
+
     const renderResultCard = () => {
         const isPrescriptionTab = activeTab === 'prescription';
-        const currentResult = isPrescriptionTab ? prescriptionResult : medicineResult;
-        const mockData = isPrescriptionTab ? mockPrescription : mockMedicine;
-        const renderer = isPrescriptionTab ? renderPrescriptionResult : renderMedicineResult;
+        const isMedicineTab = activeTab === 'medicine';
+        const isReportTab = activeTab === 'report';
+
+        const currentResult = isPrescriptionTab ? prescriptionResult : isMedicineTab ? medicineResult : reportResult;
+        const mockData = isPrescriptionTab ? mockPrescription : isMedicineTab ? mockMedicine : mockReport;
+        
+        let renderer: (data: any, isMock?: boolean) => JSX.Element;
+        if (isPrescriptionTab) renderer = renderPrescriptionResult;
+        else if (isMedicineTab) renderer = renderMedicineResult;
+        else renderer = renderReportResult;
         
         return (
             <Card className="relative">
@@ -343,9 +427,10 @@ export default function MedicalSummaryClient() {
     return (
         <div className="mt-6">
             <Tabs value={activeTab} onValueChange={(value) => {setActiveTab(value); handleClearPreview();}} className="w-full">
-                <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="prescription">Prescription Scanner</TabsTrigger>
-                    <TabsTrigger value="medicine">Medicine Scanner</TabsTrigger>
+                <TabsList className="grid w-full grid-cols-3">
+                    <TabsTrigger value="prescription">Prescription</TabsTrigger>
+                    <TabsTrigger value="report">Medical Report</TabsTrigger>
+                    <TabsTrigger value="medicine">Single Medicine</TabsTrigger>
                 </TabsList>
                 <div className='my-4 flex items-center gap-4'>
                     <div className='flex-grow' />
@@ -367,6 +452,7 @@ export default function MedicalSummaryClient() {
                 <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
                     <TabsContent value="prescription" className='m-0'>{renderScanner()}</TabsContent>
                     <TabsContent value="medicine" className='m-0'>{renderScanner()}</TabsContent>
+                    <TabsContent value="report" className='m-0'>{renderScanner()}</TabsContent>
                     {renderResultCard()}
                 </div>
                  <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
