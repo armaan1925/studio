@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 type UseSpeechSynthesis = {
   speak: (text: string) => Promise<void>;
@@ -10,8 +10,38 @@ type UseSpeechSynthesis = {
 
 export const useSpeechSynthesis = (): UseSpeechSynthesis => {
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [selectedVoice, setSelectedVoice] = useState<SpeechSynthesisVoice | null>(null);
   const synthRef = typeof window !== 'undefined' ? window.speechSynthesis : null;
   const hasSupport = !!synthRef;
+
+  const getVoices = useCallback(() => {
+    if (!hasSupport || !synthRef) return [];
+    return synthRef.getVoices();
+  }, [hasSupport, synthRef]);
+
+  useEffect(() => {
+    if (!hasSupport || !synthRef) return;
+    
+    const setVoice = () => {
+      const voices = getVoices();
+      if (voices.length > 0) {
+        // Try to find a suitable male voice. These names are common across browsers.
+        const maleVoice = 
+            voices.find(v => v.lang.startsWith('en') && v.name.toLowerCase().includes('male')) ||
+            voices.find(v => v.lang.startsWith('en') && v.name.includes('David')) ||
+            voices.find(v => v.lang.startsWith('en') && v.name.includes('Google US English')) ||
+            voices.find(v => v.lang.startsWith('en') && (v as any).gender === 'male');
+        
+        setSelectedVoice(maleVoice || voices.find(v => v.lang.startsWith('en')) || voices[0]);
+      }
+    };
+
+    setVoice();
+    // Voices may load asynchronously.
+    if (synthRef.onvoiceschanged !== undefined) {
+      synthRef.onvoiceschanged = setVoice;
+    }
+  }, [getVoices, hasSupport, synthRef]);
 
   const speak = (text: string): Promise<void> => {
     return new Promise((resolve, reject) => {
@@ -25,6 +55,11 @@ export const useSpeechSynthesis = (): UseSpeechSynthesis => {
       }
 
       const utterance = new SpeechSynthesisUtterance(text);
+      
+      if (selectedVoice) {
+        utterance.voice = selectedVoice;
+      }
+
       utterance.onstart = () => {
         setIsSpeaking(true);
       };
