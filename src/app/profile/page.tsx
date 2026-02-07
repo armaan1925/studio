@@ -15,6 +15,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { currentUser as mockUser } from '@/lib/data';
+import MedicalReports from '@/components/profile/MedicalReports';
 
 export default function ProfilePage() {
     const [user, setUser] = useState<UserProfile>(mockUser);
@@ -216,6 +217,9 @@ export default function ProfilePage() {
                             )}
                         </CardContent>
                     </Card>
+                </div>
+                 <div className="lg:col-span-3">
+                    <MedicalReports />
                 </div>
                 <div className="lg:col-span-3">
                     <MedicalQRCode user={user} />

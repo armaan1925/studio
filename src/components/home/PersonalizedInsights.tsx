@@ -4,8 +4,9 @@ import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { currentUser } from '@/lib/data';
 import { motion } from 'framer-motion';
-import { Lightbulb, FileHeart, Sparkles, Loader2 } from 'lucide-react';
+import { Lightbulb, FileHeart, Sparkles, Loader2, FolderKanban } from 'lucide-react';
 import { Badge } from '../ui/badge';
+import { getCombinedSummary, type SavedReport } from '@/lib/reports';
 
 type DailyInsights = {
   tips: string[];
@@ -33,14 +34,21 @@ const mockInsightsData: DailyInsights = {
 export function PersonalizedInsights() {
   const [insights, setInsights] = useState<DailyInsights | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [combinedSummary, setCombinedSummary] = useState<{ summary: string, reportCount: number } | null>(null);
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isClient) return;
+
     const fetchInsights = async () => {
       setIsLoading(true);
       const today = new Date().toISOString().split('T')[0];
 
       try {
-        // Check cache first
         const cachedItem = localStorage.getItem('dailyHealthInsights');
         if (cachedItem) {
           const { date, data }: CachedData = JSON.parse(cachedItem);
@@ -51,7 +59,6 @@ export function PersonalizedInsights() {
           }
         }
 
-        // Fetch from API if cache is old or doesn't exist
         const response = await fetch('/api/generate-daily-tips', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -67,8 +74,6 @@ export function PersonalizedInsights() {
         });
 
         if (!response.ok) {
-          // The API call failed. Instead of logging an error, we will gracefully
-          // fall back to showing the mock data. This provides a better user experience.
           setInsights(mockInsightsData);
           setIsLoading(false);
           return;
@@ -76,21 +81,33 @@ export function PersonalizedInsights() {
 
         const data: DailyInsights = await response.json();
         setInsights(data);
-
-        // Update cache
         localStorage.setItem('dailyHealthInsights', JSON.stringify({ date: today, data }));
 
       } catch (e: any) {
-        // An error occurred during fetch (e.g. network issue).
-        // We'll show mock data as a fallback and avoid logging to console.
         setInsights(mockInsightsData);
       } finally {
         setIsLoading(false);
       }
     };
+    
+    const loadCombinedSummary = () => {
+        const summaryData = getCombinedSummary();
+        setCombinedSummary(summaryData);
+    };
 
     fetchInsights();
-  }, []);
+    loadCombinedSummary();
+
+    // Listen for storage changes to update the combined summary in real-time
+    const handleStorageChange = () => {
+        loadCombinedSummary();
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => {
+        window.removeEventListener('storage', handleStorageChange);
+    };
+
+  }, [isClient]);
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -120,6 +137,7 @@ export function PersonalizedInsights() {
             <p>Generating your personalized AI insights for today...</p>
         </div>
         <div className="h-24 w-full bg-slate-800/50 rounded-lg animate-pulse"></div>
+        <div className="h-32 w-full bg-slate-800/50 rounded-lg animate-pulse"></div>
     </div>
   )
 
@@ -130,20 +148,23 @@ export function PersonalizedInsights() {
                 Demo AI Health Insights
             </Badge>
         )}
-        {insights?.historySummary && (
-            <motion.div variants={itemVariants}>
-                <Card className="bg-slate-900/40 border-purple-500/20 backdrop-blur-lg text-slate-100 overflow-hidden">
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-3 text-lg text-purple-300">
-                            <FileHeart /> Medical Snapshot
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <p className="text-slate-300">{insights.historySummary}</p>
-                    </CardContent>
-                </Card>
-            </motion.div>
-        )}
+        
+        <motion.div variants={itemVariants}>
+            <Card className="bg-slate-900/40 border-purple-500/20 backdrop-blur-lg text-slate-100 overflow-hidden">
+                <CardHeader>
+                    <CardTitle className="flex items-center justify-between text-lg text-purple-300">
+                        <span className='flex items-center gap-3'><FileHeart /> Your Medical Summary</span>
+                        <Badge variant="secondary">{combinedSummary?.reportCount || 0} Reports</Badge>
+                    </CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <p className="text-slate-300">
+                        {combinedSummary?.summary || "No medical reports available yet. Scan and save a report to get your combined summary."}
+                    </p>
+                </CardContent>
+            </Card>
+        </motion.div>
+
         {insights?.tips && (
             <motion.div variants={itemVariants}>
                 <Card className="bg-slate-900/40 border-cyan-500/20 backdrop-blur-lg text-slate-100 overflow-hidden">
@@ -177,7 +198,7 @@ export function PersonalizedInsights() {
             Insights tailored just for you, updated daily.
         </p>
         <div className="max-w-3xl mx-auto">
-            {isLoading ? renderLoading() : (insights ? renderContent() : null)}
+            {!isClient || isLoading ? renderLoading() : (insights ? renderContent() : null)}
         </div>
     </div>
   );

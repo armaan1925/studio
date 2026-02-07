@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { AlertCircle, Camera, CheckCircle, FileText, HeartPulse, Info, Languages, Loader2, Mic, ScanLine, ShieldAlert, TestTube2, XCircle, Upload, Trash2, ShieldCheck, CircleOff, NotebookText, Stethoscope, User, FileClock, Activity, BellRing, BrainCircuit, ArrowRight } from 'lucide-react';
+import { AlertCircle, Camera, CheckCircle, FileText, HeartPulse, Info, Languages, Loader2, Mic, ScanLine, ShieldAlert, TestTube2, XCircle, Upload, Trash2, ShieldCheck, CircleOff, NotebookText, Stethoscope, User, FileClock, Activity, BellRing, BrainCircuit, ArrowRight, Save } from 'lucide-react';
 import { getPrescriptionSummary, getMedicineInfo, getReportSummary } from './actions';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import type { SummarizePrescriptionOutput, MedicineInfo } from '@/ai/flows/summarize-prescription-flow';
@@ -23,6 +23,7 @@ import { addRemindersFromMedicines } from '@/lib/reminders';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { saveReport, type SavedReport } from '@/lib/reports';
 
 const languages = [
     { value: 'English', label: 'English' },
@@ -43,6 +44,7 @@ export default function MedicalSummaryClient() {
     const [activeTab, setActiveTab] = useState('prescription');
     const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
     const [isLoading, setIsLoading] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const [selectedLanguage, setSelectedLanguage] = useState('English');
     const { speak, isSpeaking } = useSpeechSynthesis();
@@ -50,6 +52,7 @@ export default function MedicalSummaryClient() {
     const [prescriptionResult, setPrescriptionResult] = useState<SummarizePrescriptionOutput | null>(null);
     const [medicineResult, setMedicineResult] = useState<ScanMedicineOutput | null>(null);
     const [reportResult, setReportResult] = useState<SummarizeReportOutput | null>(null);
+    const [isReportSaved, setIsReportSaved] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     const [remindersToCreate, setRemindersToCreate] = useState<MedicineInfo[]>([]);
@@ -150,6 +153,7 @@ export default function MedicalSummaryClient() {
         setReportResult(null);
         setError(null);
         setRemindersToCreate([]);
+        setIsReportSaved(false);
     };
 
     const handleClearPreview = () => {
@@ -158,12 +162,25 @@ export default function MedicalSummaryClient() {
         if (fileInputRef.current) fileInputRef.current.value = "";
     };
 
-    const handleToggleReminder = (medicineName: string) => {
-        setRemindersToCreate(prev =>
-            prev.map(med =>
-                med.name === medicineName ? { ...med, reminderEnabled: !(med as any).reminderEnabled } : med
-            )
-        );
+    const handleSaveReport = async () => {
+        if (!reportResult) return;
+        setIsSaving(true);
+        try {
+            await saveReport(reportResult);
+            setIsReportSaved(true);
+            toast({
+                title: "Report Saved",
+                description: "Your medical report has been saved to your profile.",
+            });
+        } catch(e) {
+            toast({
+                variant: 'destructive',
+                title: 'Save Failed',
+                description: 'Could not save the report.',
+            });
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     const handleCreateReminders = () => {
@@ -227,8 +244,8 @@ export default function MedicalSummaryClient() {
                 <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*,application/pdf" className="hidden" />
                 {imagePreview ? (
                     <div className='mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2'>
-                        <Button onClick={handleClearPreview} variant="outline" disabled={isLoading}><Trash2 className="mr-2" /> Clear</Button>
-                        <Button onClick={handleScan} disabled={isLoading}>
+                        <Button onClick={handleClearPreview} variant="outline" disabled={isLoading || isSaving}><Trash2 className="mr-2" /> Clear</Button>
+                        <Button onClick={handleScan} disabled={isLoading || isSaving}>
                             {isLoading ? <Loader2 className="mr-2 animate-spin" /> : <ScanLine className="mr-2" />}
                             {isLoading ? 'Analyzing...' : 'Analyze Image'}
                         </Button>
@@ -295,6 +312,16 @@ export default function MedicalSummaryClient() {
                 <p className='text-base'>{data.summaryShort}</p>
             </div>
             
+            {!isMock && reportResult && (
+                 <div className="flex flex-col gap-2">
+                    <Button onClick={handleSaveReport} disabled={isSaving || isReportSaved}>
+                        {isSaving ? <Loader2 className="mr-2 animate-spin" /> : <Save className="mr-2" />}
+                        {isReportSaved ? 'Report Saved' : 'Save Report to Profile'}
+                    </Button>
+                    <p className='text-xs text-center text-muted-foreground'>Saved reports can be viewed and managed on your Profile page.</p>
+                </div>
+            )}
+
             <div className="flex items-center justify-between rounded-lg border p-3">
                 <div>
                     <p className="text-sm font-medium text-muted-foreground">AI Risk Assessment</p>
@@ -307,7 +334,7 @@ export default function MedicalSummaryClient() {
                 </Button>
             </div>
 
-            <Accordion type="single" collapsible className="w-full">
+            <Accordion type="single" collapsible className="w-full" defaultValue='details'>
                 {data.abnormalFindings && data.abnormalFindings.length > 0 && (
                     <AccordionItem value="abnormal">
                         <AccordionTrigger>Abnormal Findings ({data.abnormalFindings.length})</AccordionTrigger>
