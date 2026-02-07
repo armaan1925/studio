@@ -25,14 +25,23 @@ export const useSpeechSynthesis = (): UseSpeechSynthesis => {
     const setVoice = () => {
       const voices = getVoices();
       if (voices.length > 0) {
-        // Try to find a suitable male voice. These names are common across browsers.
-        const maleVoice = 
-            voices.find(v => v.lang.startsWith('en') && v.name.toLowerCase().includes('male')) ||
-            voices.find(v => v.lang.startsWith('en') && v.name.includes('David')) ||
-            voices.find(v => v.lang.startsWith('en') && v.name.includes('Google US English')) ||
-            voices.find(v => v.lang.startsWith('en') && (v as any).gender === 'male');
+        // Find the best available male voice, prioritizing Indian English
+        const chosenVoice =
+          // 1. Indian English Male
+          voices.find(v => v.lang === 'en-IN' && v.name.toLowerCase().includes('male')) ||
+          // 2. US English Male
+          voices.find(v => v.lang === 'en-US' && v.name.toLowerCase().includes('male')) ||
+          // 3. Any English Male
+          voices.find(v => v.lang.startsWith('en') && v.name.toLowerCase().includes('male')) ||
+           // 4. Any voice with 'male' in the name
+          voices.find(v => v.name.toLowerCase().includes('male')) ||
+          // 5. Any voice named 'Google US English' (often a good default)
+          voices.find(v => v.name === 'Google US English') ||
+          // 6. Any English voice
+          voices.find(v => v.lang.startsWith('en')) ||
+          // 7. The very first voice available
+          voices[0];
         
-        const chosenVoice = maleVoice || voices.find(v => v.lang.startsWith('en')) || voices[0];
         setSelectedVoice(chosenVoice);
         console.log('TTS Voice selected:', chosenVoice?.name);
       }
